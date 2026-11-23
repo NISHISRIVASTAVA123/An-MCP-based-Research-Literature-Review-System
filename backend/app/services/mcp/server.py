@@ -13,6 +13,8 @@ from backend.app.services.mcp.tools import (
     tool_search_arxiv,
     tool_retrieve_paper_by_doi,
     tool_generate_search_strategy,
+    tool_screen_paper_content,
+    tool_extract_paper_evidence,
 )
 
 # Initialize MCP server
@@ -123,6 +125,50 @@ def generate_academic_search_strategy(
         preferred_databases: List of target databases (openalex, semantic_scholar, crossref, arxiv).
     """
     return tool_generate_search_strategy(topic, objective, domain, research_questions, preferred_databases)
+
+
+@mcp_server.tool()
+def screen_research_paper(
+    title: str,
+    abstract: str,
+    topic: str,
+    objective: str,
+    start_year: int,
+    end_year: int,
+    publication_year: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Evaluates paper eligibility against research scope and criteria (Phase 2).
+
+    Args:
+        title: Scientific paper title.
+        abstract: Paper abstract text.
+        topic: Research topic to screen against.
+        objective: Primary research objective.
+        start_year: Minimum publication year.
+        end_year: Maximum publication year.
+        publication_year: Optional publication year of paper.
+    """
+    return tool_screen_paper_content(
+        title, abstract, topic, objective, start_year, end_year, publication_year
+    )
+
+
+@mcp_server.tool()
+async def extract_paper_evidence(
+    paper_id: str,
+    title: str,
+    abstract: Optional[str] = None,
+    raw_text: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Extracts structured research objectives, methodologies, datasets, findings, and limitations (Phase 2).
+
+    Args:
+        paper_id: Paper unique identifier.
+        title: Title of research article.
+        abstract: Abstract text.
+        raw_text: Optional full-text extracted paper content.
+    """
+    return await tool_extract_paper_evidence(paper_id, title, abstract, raw_text)
 
 
 if __name__ == "__main__":

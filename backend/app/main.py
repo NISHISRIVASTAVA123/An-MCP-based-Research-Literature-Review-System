@@ -13,7 +13,17 @@ from fastapi.staticfiles import StaticFiles
 from backend.app.core.config import settings
 from backend.app.core.logging import logger
 from backend.app.services.persistence.database import init_db
-from backend.app.api.routes import research, strategy, search, papers, exports, mcp_routes
+from backend.app.api.routes import (
+    research,
+    strategy,
+    search,
+    papers,
+    exports,
+    mcp_routes,
+    screening_routes,
+    document_routes,
+    evidence_routes,
+)
 
 
 @asynccontextmanager
@@ -54,6 +64,9 @@ app.include_router(search.router)
 app.include_router(papers.router)
 app.include_router(exports.router)
 app.include_router(mcp_routes.router)
+app.include_router(screening_routes.router)
+app.include_router(document_routes.router)
+app.include_router(evidence_routes.router)
 
 
 @app.get("/api/health", tags=["Health"])

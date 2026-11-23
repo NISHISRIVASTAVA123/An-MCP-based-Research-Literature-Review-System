@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { ResearchRequestCreate } from '../types';
-import { Plus, Trash2, Search, HelpCircle, Layers, Calendar, CheckSquare } from 'lucide-react';
+import {
+  Plus, Trash2, Search, Layers, Calendar, Database, Settings2,
+  ChevronDown, ChevronUp, Sparkles, BookOpen,
+} from 'lucide-react';
 
 interface ResearchFormProps {
   onSubmit: (data: ResearchRequestCreate) => void;
@@ -16,6 +19,15 @@ const DOMAINS = [
   'Healthcare & Biomedical Informatics',
   'Data Science & Analytics',
   'Software Engineering',
+  'Robotics & Autonomous Systems',
+  'Human-Computer Interaction',
+];
+
+const DB_OPTIONS = [
+  { id: 'openalex',         label: 'OpenAlex',         desc: '240M+ works, open access', color: '#0369a1', bg: '#e0f2fe' },
+  { id: 'semantic_scholar', label: 'Semantic Scholar',  desc: '220M papers with AI features', color: '#6d28d9', bg: '#f3e8ff' },
+  { id: 'crossref',         label: 'Crossref',          desc: '150M+ DOI-registered works', color: '#92400e', bg: '#fef3c7' },
+  { id: 'arxiv',            label: 'arXiv Preprints',   desc: '2.3M+ STEM preprints', color: '#991b1b', bg: '#fee2e2' },
 ];
 
 export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading }) => {
@@ -29,44 +41,23 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
   const [endYear, setEndYear] = useState(2026);
   const [maxPapers, setMaxPapers] = useState(25);
   const [citationStyle, setCitationStyle] = useState('IEEE');
-
   const [questions, setQuestions] = useState<string[]>([
     'What explanation mechanisms (e.g. SHAP, LIME, attention maps) are prevalent in fake news models?',
     'Are existing explanation methods robust against adversarial misinformation perturbations?',
   ]);
-
-  const [preferredDbs, setPreferredDbs] = useState<string[]>([
-    'openalex',
-    'semantic_scholar',
-    'crossref',
-    'arxiv',
-  ]);
-
+  const [preferredDbs, setPreferredDbs] = useState<string[]>(['openalex', 'semantic_scholar', 'crossref', 'arxiv']);
   const [inclusionCriteria, setInclusionCriteria] = useState('Peer-reviewed or archived scientific works; Focus on text or multimodal fake news');
   const [exclusionCriteria, setExclusionCriteria] = useState('Non-English publications; Purely non-technical opinion pieces');
   const [specificDois, setSpecificDois] = useState('');
-
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleAddQuestion = () => {
-    setQuestions([...questions, '']);
-  };
-
-  const handleUpdateQuestion = (index: number, val: string) => {
-    const updated = [...questions];
-    updated[index] = val;
-    setQuestions(updated);
-  };
-
-  const handleRemoveQuestion = (index: number) => {
-    setQuestions(questions.filter((_, i) => i !== index));
-  };
-
+  const addQuestion = () => setQuestions([...questions, '']);
+  const updateQuestion = (i: number, v: string) => { const q = [...questions]; q[i] = v; setQuestions(q); };
+  const removeQuestion = (i: number) => setQuestions(questions.filter((_, idx) => idx !== i));
   const toggleDb = (db: string) => {
     if (preferredDbs.includes(db)) {
-      if (preferredDbs.length > 1) {
-        setPreferredDbs(preferredDbs.filter((d) => d !== db));
-      }
+      if (preferredDbs.length > 1) setPreferredDbs(preferredDbs.filter((d) => d !== db));
     } else {
       setPreferredDbs([...preferredDbs, db]);
     }
@@ -75,18 +66,10 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (!topic.trim()) errs.topic = 'Research topic is required.';
-    if (!objective.trim() || objective.trim().length < 10) {
-      errs.objective = 'Research objective must be at least 10 characters.';
-    }
-    if (startYear > endYear) {
-      errs.years = `Start year (${startYear}) cannot be later than end year (${endYear}).`;
-    }
-    if (maxPapers < 5 || maxPapers > 100) {
-      errs.maxPapers = 'Max papers should be between 5 and 100.';
-    }
-    if (preferredDbs.length === 0) {
-      errs.databases = 'Select at least one academic database.';
-    }
+    if (!objective.trim() || objective.trim().length < 10) errs.objective = 'Objective must be at least 10 characters.';
+    if (startYear > endYear) errs.years = `Start year (${startYear}) cannot be later than end year (${endYear}).`;
+    if (maxPapers < 5 || maxPapers > 100) errs.maxPapers = 'Max papers must be between 5 and 100.';
+    if (preferredDbs.length === 0) errs.databases = 'Select at least one database.';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -94,10 +77,8 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-
     const finalDomain = domain === 'Other' && customDomain.trim() ? customDomain.trim() : domain;
-
-    const payload: ResearchRequestCreate = {
+    onSubmit({
       topic: topic.trim(),
       objective: objective.trim(),
       domain: finalDomain,
@@ -106,101 +87,126 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
       max_papers: Number(maxPapers),
       citation_style: citationStyle,
       research_questions: questions.map((q) => q.trim()).filter(Boolean),
-      inclusion_criteria: inclusionCriteria
-        .split(';')
-        .map((s) => s.trim())
-        .filter(Boolean),
-      exclusion_criteria: exclusionCriteria
-        .split(';')
-        .map((s) => s.trim())
-        .filter(Boolean),
+      inclusion_criteria: inclusionCriteria.split(';').map((s) => s.trim()).filter(Boolean),
+      exclusion_criteria: exclusionCriteria.split(';').map((s) => s.trim()).filter(Boolean),
       preferred_databases: preferredDbs,
       publication_types: ['journal', 'conference', 'review', 'preprint'],
-      specific_dois: specificDois
-        .split('\n')
-        .map((s) => s.trim())
-        .filter(Boolean),
-    };
-
-    onSubmit(payload);
+      specific_dois: specificDois.split('\n').map((s) => s.trim()).filter(Boolean),
+    });
   };
 
+  /* ---- Helper renderers ---- */
+  const FieldLabel = ({ children, required }: { children: React.ReactNode; required?: boolean }) => (
+    <label style={{
+      display: 'block', fontSize: '0.72rem', fontWeight: 700,
+      letterSpacing: '0.07em', textTransform: 'uppercase', color: '#475569', marginBottom: '0.5rem',
+    }}>
+      {children} {required && <span style={{ color: '#f43f5e' }}>*</span>}
+    </label>
+  );
+
+  const ErrorMsg = ({ msg }: { msg?: string }) =>
+    msg ? <p style={{ fontSize: '0.76rem', color: '#f43f5e', marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>⚠ {msg}</p> : null;
+
   return (
-    <form onSubmit={handleSubmit} className="academic-card p-6 sm:p-8 max-w-4xl mx-auto space-y-8">
-      <div>
-        <div className="flex items-center gap-2 mb-1">
-          <Layers className="h-5 w-5 text-indigo-600" />
-          <h2 className="text-xl font-bold font-serif text-slate-900">Define Research Review Request</h2>
+    <form onSubmit={handleSubmit} style={{ maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+      {/* Hero section */}
+      <div className="card-dark" style={{ padding: '1.75rem 2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem' }}>
+          <div style={{
+            padding: '0.4rem', borderRadius: '0.5rem',
+            background: 'rgba(129,140,248,.2)', display: 'inline-flex',
+          }}>
+            <Layers size={18} color="#a5b4fc" />
+          </div>
+          <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a5b4fc' }}>
+            Step 1 · Define Research Request
+          </span>
         </div>
-        <p className="text-xs text-slate-500">
-          Enter your research topic, define the review objective, and configure the academic scope for autonomous retrieval.
+        <h2 style={{ fontFamily: 'Sora, Inter, sans-serif', fontWeight: 800, fontSize: '1.45rem', color: '#fff', marginBottom: '0.4rem' }}>
+          What do you want to research?
+        </h2>
+        <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.55)', maxWidth: 540 }}>
+          Define your research topic and objectives. The system will generate a tailored search strategy and retrieve papers from multiple academic databases.
         </p>
       </div>
 
-      {/* Core Fields */}
-      <div className="space-y-5">
+      {/* Core fields */}
+      <div className="card" style={{ padding: '1.75rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '1rem', borderBottom: '1px solid #f1f5f9' }}>
+          <BookOpen size={16} color="#6366f1" />
+          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>Core Research Details</span>
+        </div>
+
+        {/* Topic */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            Research Topic <span className="text-red-500">*</span>
-          </label>
+          <FieldLabel required>Research Topic</FieldLabel>
           <input
             type="text"
-            className="input-base text-base font-medium"
+            className="input"
+            style={{ fontSize: '1rem', fontWeight: 600 }}
             placeholder="e.g. Explainable AI for Fake News Detection"
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
           />
-          {errors.topic && <p className="text-xs text-red-600 mt-1">{errors.topic}</p>}
+          <ErrorMsg msg={errors.topic} />
         </div>
 
+        {/* Objective */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            Research Objective & Scope <span className="text-red-500">*</span>
-          </label>
+          <FieldLabel required>Research Objective & Scope</FieldLabel>
           <textarea
             rows={3}
-            className="input-base"
+            className="input"
             placeholder="State the primary goal of your literature review..."
             value={objective}
             onChange={(e) => setObjective(e.target.value)}
           />
-          {errors.objective && <p className="text-xs text-red-600 mt-1">{errors.objective}</p>}
+          <ErrorMsg msg={errors.objective} />
         </div>
 
-        {/* Dynamic Research Questions */}
+        {/* Research Questions */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-              Research Questions
-            </label>
-            <button
-              type="button"
-              onClick={handleAddQuestion}
-              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span>Add Research Question</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+            <FieldLabel>Research Questions</FieldLabel>
+            <button type="button" onClick={addQuestion} style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              fontSize: '0.78rem', fontWeight: 600, color: '#6366f1',
+              background: '#eef2ff', border: '1px solid #c7d2fe',
+              borderRadius: '0.4rem', padding: '0.3rem 0.7rem', cursor: 'pointer',
+            }}>
+              <Plus size={13} /> Add Question
             </button>
           </div>
-
-          <div className="space-y-2.5">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {questions.map((q, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <span className="text-xs font-mono text-slate-400 w-6">RQ{idx + 1}</span>
+              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{
+                  minWidth: 36, height: 28, borderRadius: '0.4rem',
+                  background: '#eef2ff', color: '#6366f1',
+                  fontSize: '0.7rem', fontWeight: 800,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}>RQ{idx + 1}</span>
                 <input
                   type="text"
-                  className="input-base text-xs"
+                  className="input"
+                  style={{ fontSize: '0.84rem' }}
                   placeholder="e.g. What datasets are standardly evaluated?"
                   value={q}
-                  onChange={(e) => handleUpdateQuestion(idx, e.target.value)}
+                  onChange={(e) => updateQuestion(idx, e.target.value)}
                 />
                 {questions.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveQuestion(idx)}
-                    className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                  <button type="button" onClick={() => removeQuestion(idx)} style={{
+                    padding: '0.4rem', background: 'none', border: 'none',
+                    cursor: 'pointer', color: '#94a3b8', borderRadius: '0.4rem',
+                    transition: 'color 0.15s',
+                  }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#f43f5e'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 size={15} />
                   </button>
                 )}
               </div>
@@ -209,167 +215,151 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
         </div>
       </div>
 
-      <hr className="border-slate-200" />
-
       {/* Scope Configuration */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            Scientific Domain
-          </label>
-          <select
-            className="input-base text-sm"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-          >
-            {DOMAINS.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-            <option value="Other">Other (Custom Domain)...</option>
-          </select>
-          {domain === 'Other' && (
-            <input
-              type="text"
-              className="input-base text-xs mt-2"
-              placeholder="Enter domain name..."
-              value={customDomain}
-              onChange={(e) => setCustomDomain(e.target.value)}
-            />
-          )}
+      <div className="card" style={{ padding: '1.75rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingBottom: '1rem', borderBottom: '1px solid #f1f5f9' }}>
+          <Settings2 size={16} color="#6366f1" />
+          <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>Search Configuration</span>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            <Calendar className="h-3.5 w-3.5 inline mr-1 text-slate-500" />
-            Publication Timeframe
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              className="input-base text-center"
-              value={startYear}
-              onChange={(e) => setStartYear(Number(e.target.value))}
-              min={1990}
-              max={2030}
-            />
-            <span className="text-slate-400 text-xs font-semibold">to</span>
-            <input
-              type="number"
-              className="input-base text-center"
-              value={endYear}
-              onChange={(e) => setEndYear(Number(e.target.value))}
-              min={1990}
-              max={2030}
-            />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+          {/* Domain */}
+          <div>
+            <FieldLabel>Scientific Domain</FieldLabel>
+            <select className="input" value={domain} onChange={(e) => setDomain(e.target.value)}>
+              {DOMAINS.map((d) => <option key={d}>{d}</option>)}
+              <option value="Other">Other (Custom)...</option>
+            </select>
+            {domain === 'Other' && (
+              <input type="text" className="input" style={{ marginTop: '0.5rem', fontSize: '0.84rem' }}
+                placeholder="Enter domain name..." value={customDomain} onChange={(e) => setCustomDomain(e.target.value)} />
+            )}
           </div>
-          {errors.years && <p className="text-xs text-red-600 mt-1">{errors.years}</p>}
-        </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            Target Academic Databases
-          </label>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            {[
-              { id: 'openalex', label: 'OpenAlex', color: 'badge-openalex' },
-              { id: 'semantic_scholar', label: 'Semantic Scholar', color: 'badge-semantic_scholar' },
-              { id: 'crossref', label: 'Crossref', color: 'badge-crossref' },
-              { id: 'arxiv', label: 'arXiv Preprints', color: 'badge-arxiv' },
-            ].map((db) => (
-              <label
-                key={db.id}
-                className={`flex items-center gap-2 p-2 rounded-md border cursor-pointer select-none transition-colors ${
-                  preferredDbs.includes(db.id)
-                    ? 'border-indigo-300 bg-indigo-50/50 text-indigo-950 font-medium'
-                    : 'border-slate-200 hover:bg-slate-50 text-slate-600'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={preferredDbs.includes(db.id)}
-                  onChange={() => toggleDb(db.id)}
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
-                />
-                <span>{db.label}</span>
-              </label>
-            ))}
+          {/* Year range */}
+          <div>
+            <FieldLabel>Publication Timeframe</FieldLabel>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <input type="number" className="input" style={{ textAlign: 'center' }}
+                value={startYear} min={1990} max={2030}
+                onChange={(e) => setStartYear(Number(e.target.value))} />
+              <span style={{ color: '#94a3b8', fontWeight: 700, fontSize: '0.8rem', flexShrink: 0 }}>to</span>
+              <input type="number" className="input" style={{ textAlign: 'center' }}
+                value={endYear} min={1990} max={2030}
+                onChange={(e) => setEndYear(Number(e.target.value))} />
+            </div>
+            <ErrorMsg msg={errors.years} />
           </div>
-          {errors.databases && <p className="text-xs text-red-600 mt-1">{errors.databases}</p>}
         </div>
 
+        {/* Databases */}
         <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">
-            Retrieval Parameters
-          </label>
-          <div className="flex items-center gap-3">
-            <div className="flex-1">
-              <span className="text-[11px] text-slate-500 block mb-1">Max Papers / Search:</span>
-              <input
-                type="number"
-                className="input-base"
-                value={maxPapers}
-                onChange={(e) => setMaxPapers(Number(e.target.value))}
-                min={5}
-                max={100}
-              />
-            </div>
-            <div className="flex-1">
-              <span className="text-[11px] text-slate-500 block mb-1">Citation Format:</span>
-              <select
-                className="input-base"
-                value={citationStyle}
-                onChange={(e) => setCitationStyle(e.target.value)}
-              >
-                <option value="IEEE">IEEE</option>
-                <option value="APA">APA 7th</option>
-                <option value="Harvard">Harvard</option>
-                <option value="ACM">ACM</option>
-              </select>
-            </div>
+          <FieldLabel>Target Academic Databases</FieldLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.65rem' }}>
+            {DB_OPTIONS.map((db) => {
+              const isSelected = preferredDbs.includes(db.id);
+              return (
+                <label key={db.id} style={{
+                  display: 'flex', alignItems: 'center', gap: '0.65rem',
+                  padding: '0.75rem 1rem', borderRadius: '0.65rem', cursor: 'pointer',
+                  border: `1.5px solid ${isSelected ? db.color + '55' : '#e2e8f0'}`,
+                  background: isSelected ? db.bg + 'aa' : '#fff',
+                  transition: 'all 0.15s', userSelect: 'none',
+                }}>
+                  <input type="checkbox" checked={isSelected} onChange={() => toggleDb(db.id)}
+                    style={{ accentColor: db.color, width: 15, height: 15, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1e293b' }}>{db.label}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#64748b' }}>{db.desc}</div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+          <ErrorMsg msg={errors.databases} />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+          {/* Max papers */}
+          <div>
+            <FieldLabel>Max Papers per Search</FieldLabel>
+            <input type="number" className="input" value={maxPapers}
+              min={5} max={100} onChange={(e) => setMaxPapers(Number(e.target.value))} />
+            <ErrorMsg msg={errors.maxPapers} />
+          </div>
+          {/* Citation style */}
+          <div>
+            <FieldLabel>Citation Format</FieldLabel>
+            <select className="input" value={citationStyle} onChange={(e) => setCitationStyle(e.target.value)}>
+              <option>IEEE</option>
+              <option>APA</option>
+              <option>Harvard</option>
+              <option>ACM</option>
+            </select>
           </div>
         </div>
       </div>
 
-      {/* Optional Criteria */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-        <div>
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
-            Inclusion Criteria (Semicolon-separated)
-          </label>
-          <input
-            type="text"
-            className="input-base text-xs"
-            value={inclusionCriteria}
-            onChange={(e) => setInclusionCriteria(e.target.value)}
-            placeholder="e.g. Peer-reviewed; Empirical studies; 2018+"
-          />
-        </div>
-        <div>
-          <label className="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">
-            Exclusion Criteria (Semicolon-separated)
-          </label>
-          <input
-            type="text"
-            className="input-base text-xs"
-            value={exclusionCriteria}
-            onChange={(e) => setExclusionCriteria(e.target.value)}
-            placeholder="e.g. Keynotes; Non-English; Extended abstracts"
-          />
-        </div>
+      {/* Advanced / Optional */}
+      <div className="card" style={{ overflow: 'hidden' }}>
+        <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '1rem 1.75rem', background: 'none', border: 'none', cursor: 'pointer',
+            fontWeight: 600, fontSize: '0.85rem', color: '#475569',
+          }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Settings2 size={15} />
+            Advanced Options (Inclusion/Exclusion Criteria, Specific DOIs)
+          </span>
+          {showAdvanced ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </button>
+
+        {showAdvanced && (
+          <div style={{ padding: '0 1.75rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', paddingTop: '1rem' }}>
+              <div>
+                <FieldLabel>Inclusion Criteria</FieldLabel>
+                <input type="text" className="input" style={{ fontSize: '0.82rem' }}
+                  placeholder="e.g. Peer-reviewed; Empirical studies; 2018+" value={inclusionCriteria}
+                  onChange={(e) => setInclusionCriteria(e.target.value)} />
+                <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '0.3rem' }}>Semicolon-separated</p>
+              </div>
+              <div>
+                <FieldLabel>Exclusion Criteria</FieldLabel>
+                <input type="text" className="input" style={{ fontSize: '0.82rem' }}
+                  placeholder="e.g. Keynotes; Non-English; Extended abstracts" value={exclusionCriteria}
+                  onChange={(e) => setExclusionCriteria(e.target.value)} />
+                <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '0.3rem' }}>Semicolon-separated</p>
+              </div>
+            </div>
+            <div>
+              <FieldLabel>Specific DOIs to Include</FieldLabel>
+              <textarea rows={2} className="input" style={{ fontSize: '0.82rem', fontFamily: 'JetBrains Mono, monospace' }}
+                placeholder="10.1234/example&#10;10.5678/another" value={specificDois}
+                onChange={(e) => setSpecificDois(e.target.value)} />
+              <p style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '0.3rem' }}>One DOI per line</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Submit Action */}
-      <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-200">
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="btn-primary text-sm py-2.5 px-6 shadow-sm"
-        >
+      {/* Submit */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingBottom: '2rem' }}>
+        {questions.filter(Boolean).length === 0 && (
+          <div className="info-banner" style={{ flex: 1, fontSize: '0.78rem' }}>
+            💡 No research questions added — the system will infer from topic and objective.
+          </div>
+        )}
+        <button type="submit" disabled={isLoading} className="btn btn-primary btn-lg" style={{ minWidth: 220 }}>
           {isLoading ? (
-            <span>Generating Search Strategy...</span>
+            <>
+              <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
+              <span>Generating Strategy...</span>
+            </>
           ) : (
             <>
-              <Search className="h-4 w-4" />
+              <Sparkles size={18} />
               <span>Generate Search Strategy</span>
             </>
           )}
@@ -378,4 +368,3 @@ export const ResearchForm: React.FC<ResearchFormProps> = ({ onSubmit, isLoading 
     </form>
   );
 };
-

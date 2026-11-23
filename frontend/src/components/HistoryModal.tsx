@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ResearchRequestSummary } from '../types';
 import { listResearchRequests, deleteResearchRequest } from '../services/api';
-import { X, History, Trash2, ArrowRight, BookOpen, Clock } from 'lucide-react';
+import { X, History, Trash2, ArrowRight, BookOpen, Clock, Calendar } from 'lucide-react';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -47,33 +47,48 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden border border-slate-200">
-        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-          <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-base font-bold font-serif text-slate-900">
-              Saved Research Reviews
-            </h2>
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-panel"
+        style={{ maxWidth: 640, width: '100%', display: 'flex', flexDirection: 'column' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div style={{ padding: '0.35rem', borderRadius: '0.45rem', background: '#eef2ff' }}>
+              <History size={16} color="#6366f1" />
+            </div>
+            <div>
+              <h2 style={{ fontFamily: 'Sora, sans-serif', fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                Saved Research Reviews
+              </h2>
+              <p style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                Reopen past literature reviews or check saved search results
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-200/60 transition-colors"
+            className="btn btn-ghost"
+            style={{ borderRadius: '0.4rem', padding: '0.4rem', color: '#64748b' }}
           >
-            <X className="h-5 w-5" />
+            <X size={18} />
           </button>
         </div>
 
-        <div className="p-5 overflow-y-auto space-y-3 flex-1">
+        {/* List Body */}
+        <div style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', maxHeight: 440, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           {isLoading ? (
-            <div className="py-12 text-center text-slate-500 text-xs">
+            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>
+              <div className="spinner" style={{ margin: '0 auto 0.75rem', width: 24, height: 24, borderWidth: 2 }} />
               Loading review history...
             </div>
           ) : history.length === 0 ? (
-            <div className="py-12 text-center text-slate-500 space-y-2">
-              <BookOpen className="h-8 w-8 text-slate-300 mx-auto" />
-              <p className="text-sm font-medium text-slate-700">No previous reviews found.</p>
-              <p className="text-xs text-slate-400">Start a new review to save literature searches.</p>
+            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+              <BookOpen size={32} color="#cbd5e1" style={{ margin: '0 auto 0.5rem' }} />
+              <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b' }}>No previous reviews found.</p>
+              <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>Submit your first research review to save it in SQLite.</p>
             </div>
           ) : (
             history.map((item) => (
@@ -83,54 +98,75 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
                   onSelectRequest(item.id);
                   onClose();
                 }}
-                className="academic-card p-4 hover:border-indigo-300 hover:bg-indigo-50/20 cursor-pointer transition-all flex items-start justify-between gap-4"
+                className="card"
+                style={{
+                  padding: '1rem 1.25rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '1rem',
+                  border: '1.5px solid #e2e8f0',
+                  transition: 'all 0.15s',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#c7d2fe';
+                  e.currentTarget.style.backgroundColor = '#fafbff';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                  e.currentTarget.style.backgroundColor = '#fff';
+                }}
               >
-                <div className="space-y-1 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="badge bg-slate-100 text-slate-700 border border-slate-200 text-[10px]">
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+                    <span className="badge badge-brand" style={{ fontSize: '0.65rem' }}>
                       {item.domain}
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
+                    <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontFamily: 'JetBrains Mono, monospace' }}>
                       {item.start_year}–{item.end_year}
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold font-serif text-slate-900 line-clamp-1">
+                  <h3 style={{ fontFamily: 'Sora, sans-serif', fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.25rem' }} className="truncate">
                     {item.topic}
                   </h3>
-                  <p className="text-xs text-slate-500 line-clamp-1">
-                    {item.objective}
-                  </p>
 
-                  <div className="flex items-center gap-4 pt-1 text-[11px] text-slate-500 font-mono">
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="h-3 w-3 text-indigo-500" />
-                      <strong>{item.total_papers}</strong> papers collected
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.72rem', color: '#64748b' }}>
+                    <span>
+                      <strong>{item.total_papers}</strong> papers retrieved
                     </span>
-                    <span className="flex items-center gap-1 text-slate-400">
-                      <Clock className="h-3 w-3" />
-                      {new Date(item.created_at).toLocaleDateString()}
+                    <span>•</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <Clock size={11} /> {new Date(item.created_at).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
                   <button
                     onClick={(e) => handleDelete(item.id, e)}
-                    className="p-2 text-slate-400 hover:text-red-600 rounded hover:bg-slate-100"
-                    title="Delete record"
+                    className="btn btn-ghost"
+                    style={{ padding: '0.4rem', color: '#94a3b8' }}
+                    title="Delete review"
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#f43f5e')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 size={15} />
                   </button>
-                  <ArrowRight className="h-4 w-4 text-indigo-600" />
+
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#eef2ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ArrowRight size={14} color="#6366f1" />
+                  </div>
                 </div>
               </div>
             ))
           )}
         </div>
 
-        <div className="p-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-end">
-          <button onClick={onClose} className="btn-secondary py-1 px-4 text-xs">
+        {/* Footer */}
+        <div style={{ padding: '0.85rem 1.5rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end' }}>
+          <button onClick={onClose} className="btn btn-secondary btn-sm">
             Close
           </button>
         </div>
@@ -138,4 +174,3 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({
     </div>
   );
 };
-

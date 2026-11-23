@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ResearchRequest,
   ResearchRequestCreate,
@@ -6,6 +6,7 @@ import {
   StrategyQuery,
   Paper,
   SearchExecutionSummary,
+  EvidenceRecord,
 } from './types';
 import {
   createResearchRequest,
@@ -17,21 +18,26 @@ import {
   getSearchHistory,
 } from './services/api';
 import { Header } from './components/Header';
+import { PhaseRoadmap } from './components/PhaseRoadmap';
 import { ResearchForm } from './components/ResearchForm';
 import { StrategyEditor } from './components/StrategyEditor';
 import { SearchDashboard } from './components/SearchDashboard';
+import { ScreeningView } from './components/ScreeningView';
+import { EvidenceViewModal } from './components/EvidenceViewModal';
 import { PaperModal } from './components/PaperModal';
 import { HistoryModal } from './components/HistoryModal';
 import { McpModal } from './components/McpModal';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, FlaskConical } from 'lucide-react';
 
 export function App() {
-  const [activeStep, setActiveStep] = useState<'form' | 'strategy' | 'dashboard'>('form');
+  const [activeStep, setActiveStep] = useState<'form' | 'strategy' | 'dashboard' | 'screening'>('form');
   const [currentRequest, setCurrentRequest] = useState<ResearchRequest | null>(null);
   const [currentStrategy, setCurrentStrategy] = useState<SearchStrategy | null>(null);
   const [lastExecution, setLastExecution] = useState<SearchExecutionSummary | undefined>(undefined);
 
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
+  const [selectedEvidence, setSelectedEvidence] = useState<EvidenceRecord | null>(null);
+  const [inspectPaperTitle, setInspectPaperTitle] = useState('');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isMcpOpen, setIsMcpOpen] = useState(false);
 
@@ -42,7 +48,7 @@ export function App() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      // 1. Create request
+      // 1. Create request in SQLite
       const req = await createResearchRequest(payload);
       setCurrentRequest(req);
 
@@ -69,8 +75,8 @@ export function App() {
         setCurrentStrategy(updated);
       }
 
-      // 2. Execute retrieval pipeline
-      const execResult = await executeSearch(currentRequest.id);
+      // 2. Execute retrieval pipeline concurrently across providers
+      await executeSearch(currentRequest.id);
 
       // 3. Reload execution history
       const history = await getSearchHistory(currentRequest.id);
@@ -78,7 +84,7 @@ export function App() {
         setLastExecution(history[0]);
       }
 
-      // 4. Reload updated request
+      // 4. Reload updated request with paper counts
       const reloadedReq = await getResearchRequest(currentRequest.id);
       setCurrentRequest(reloadedReq);
 
@@ -138,24 +144,26 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="app-shell">
+      {/* Top Navigation Bar with Step Indicator */}
       <Header
         onNewReview={handleNewReview}
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenMcp={() => setIsMcpOpen(true)}
+        activeStep={activeStep}
       />
 
       {/* Global Error Banner */}
       {errorMsg && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-3">
-          <div className="app-container flex items-center justify-between text-xs text-red-800">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-red-600 shrink-0" />
+        <div style={{ background: '#fef2f2', borderBottom: '1px solid #fecaca', padding: '0.75rem 1.5rem' }}>
+          <div className="app-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem', color: '#991b1b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <AlertCircle size={16} color="#ef4444" style={{ flexShrink: 0 }} />
               <span>{errorMsg}</span>
             </div>
             <button
               onClick={() => setErrorMsg(null)}
-              className="text-red-600 hover:text-red-900 font-semibold"
+              style={{ background: 'none', border: 'none', color: '#b91c1c', fontWeight: 700, cursor: 'pointer', fontSize: '0.78rem' }}
             >
               Dismiss
             </button>
@@ -163,62 +171,85 @@ export function App() {
         </div>
       )}
 
-      {/* Main App Container */}
-      <main className="app-container py-8 flex-1">
-        {activeStep === 'form' && (
-          <ResearchForm
-            onSubmit={handleCreateRequest}
-            isLoading={isLoading}
-          />
-        )}
+      {/* Main Two-Column Layout (Sidebar + Work Area) */}
+      <div className="two-col-layout">
+        {/* Left Sidebar: 12-Week 9-Phase Research Roadmap */}
+        <PhaseRoadmap currentActiveStep={activeStep} />
 
-        {activeStep === 'strategy' && currentRequest && currentStrategy && (
-          <StrategyEditor
-            request={currentRequest}
-            strategy={currentStrategy}
-            onExecuteSearch={handleExecuteSearch}
-            onSaveStrategy={handleSaveStrategy}
-            isExecuting={isLoading}
-            onBack={() => setActiveStep('form')}
-          />
-        )}
+        {/* Right Work Area */}
+        <main style={{ padding: '2rem 2.5rem', background: '#f0f2ff', flex: 1, minWidth: 0 }}>
+          {activeStep === 'form' && (
+            <ResearchForm
+              onSubmit={handleCreateRequest}
+              isLoading={isLoading}
+            />
+          )}
 
-        {activeStep === 'dashboard' && currentRequest && (
-          <SearchDashboard
-            request={currentRequest}
-            onModifyStrategy={() => setActiveStep('strategy')}
-            onSelectPaper={(p) => setSelectedPaper(p)}
-            lastExecution={lastExecution}
-          />
-        )}
-      </main>
+          {activeStep === 'strategy' && currentRequest && currentStrategy && (
+            <StrategyEditor
+              request={currentRequest}
+              strategy={currentStrategy}
+              onExecuteSearch={handleExecuteSearch}
+              onSaveStrategy={handleSaveStrategy}
+              isExecuting={isLoading}
+              onBack={() => setActiveStep('form')}
+            />
+          )}
 
-      {/* Paper Details Modal */}
+          {activeStep === 'dashboard' && currentRequest && (
+            <SearchDashboard
+              request={currentRequest}
+              onModifyStrategy={() => setActiveStep('strategy')}
+              onSelectPaper={(p) => setSelectedPaper(p)}
+              lastExecution={lastExecution}
+              onProceedToScreening={() => setActiveStep('screening')}
+            />
+          )}
+
+          {activeStep === 'screening' && currentRequest && (
+            <ScreeningView
+              request={currentRequest}
+              onBackToCorpus={() => setActiveStep('dashboard')}
+              onInspectEvidence={(ev, title) => {
+                setSelectedEvidence(ev);
+                setInspectPaperTitle(title);
+              }}
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Modals */}
       <PaperModal
         paper={selectedPaper}
         onClose={() => setSelectedPaper(null)}
       />
 
-      {/* Saved Reviews History Modal */}
+      <EvidenceViewModal
+        evidence={selectedEvidence}
+        paperTitle={inspectPaperTitle}
+        onClose={() => setSelectedEvidence(null)}
+      />
+
       <HistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         onSelectRequest={handleSelectSavedRequest}
       />
 
-      {/* MCP Tools Inspector Modal */}
       <McpModal
         isOpen={isMcpOpen}
         onClose={() => setIsMcpOpen(false)}
       />
 
       {/* Academic Footer */}
-      <footer className="border-t border-slate-200 bg-white py-4 mt-auto">
-        <div className="app-container flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
-          <div>
-            12-Week Capstone Research Project • MCP Multi-Agent Autonomous Literature Review Framework
+      <footer style={{ borderTop: '1px solid #e2e8f0', background: '#fff', padding: '0.85rem 1.5rem' }}>
+        <div className="app-container" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', fontSize: '0.74rem', color: '#64748b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <FlaskConical size={14} color="#6366f1" />
+            <span>12-Week Capstone Research Project • MCP Multi-Agent Autonomous Literature Review Framework</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontFamily: 'JetBrains Mono, monospace', fontSize: '0.7rem' }}>
             <span>OpenAlex</span>
             <span>•</span>
             <span>Semantic Scholar</span>
@@ -232,4 +263,3 @@ export function App() {
     </div>
   );
 }
-

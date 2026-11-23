@@ -13,7 +13,7 @@
 | Phase | Milestone Description | Planned Schedule | Status | Deliverables Complete |
 |---|---|---|---|---|
 | **Phase 1** | **Research input, search strategy, and academic literature retrieval** | **Weeks 1–2** | 🟢 **COMPLETED** | **12 / 12 Subtasks Done (100%)** |
-| Phase 2 | Paper screening and evidence extraction | Weeks 3–4 | ⚪ Queued | 0 / 6 Modules |
+| **Phase 2** | **Paper screening and structured evidence extraction** | **Weeks 3–4** | 🟢 **COMPLETED** | **7 / 7 Modules Done (100%)** |
 | Phase 3 | Evidence database and evidence graph construction | Weeks 5–6 | ⚪ Queued | 0 / 5 Modules |
 | Phase 4 | Literature synthesis and baseline research-gap generation | Week 7 | ⚪ Queued | 0 / 6 Modules |
 | Phase 5 | Explicit counterevidence retrieval | Week 8 | ⚪ Queued | 0 / 5 Modules |
@@ -24,40 +24,66 @@
 
 ---
 
-## 2. Phase 1 Implementation Checklist
-
-```
-[ Phase 1 Progress: 12 / 12 Completed - 100% ]
-```
-
-- [x] **1.1 Workspace & Backend Core**: FastAPI initialization, Pydantic settings, logging, CORS, error middleware, static file serving.
-- [x] **1.2 Database Schema & Migrations**: SQLAlchemy 2.0 models for Requests, Questions, Strategies, Queries, Papers, Sources, Executions.
-- [x] **1.3 Strategy Generator**: Deterministic concept extraction, keywords, synonyms, query combinations, database-specific query builders.
-- [x] **1.4 OpenAlex Provider Adapter**: Async client, polite pool header, filter by year, abstract reconstruction from inverted index, pagination.
-- [x] **1.5 Semantic Scholar Provider Adapter**: Async client, graph API fields, external IDs, open-access PDF resolution, 429 rate-limit tolerance.
-- [x] **1.6 Crossref Provider Adapter**: Async client, query resolution, bibliographic metadata normalization, JATS XML stripping, polite mailto.
-- [x] **1.7 arXiv Provider Adapter**: Async client, Atom XML parser, category filter, relevance sorting, PDF link resolution.
-- [x] **1.8 Normalization & Deduplication Service**: Canonical `NormalizedPaper` model, multi-tier deduplication (DOI -> Normalized Title + Year -> Authors), provenance tracking.
-- [x] **1.9 REST API Endpoints**: Full CRUD for research requests, strategy generation/editing, retrieval execution, paper exploration, CSV/JSON export.
-- [x] **1.10 Official Python MCP Server**: `MCPServer` tools exposing academic search, DOI lookup, and normalization for multi-agent workflows.
-- [x] **1.11 Frontend User Interface**: Academic UI in React 19 + TypeScript + Vite, research form, strategy inspector, search dashboard, paper table with filters, details modal, and history reopening.
-- [x] **1.12 Testing & Verification**: 24/24 Pytest unit & integration tests passing (mocked responses) and manual live integration test script verified against real APIs.
+## 2. Phase 1 Implementation Summary (Completed)
+- **1.1 Workspace & Backend Core**: FastAPI initialization, Pydantic settings, logging, CORS, error middleware.
+- **1.2 Database Schema**: SQLAlchemy 2.0 models for Requests, Questions, Strategies, Queries, Papers, Sources, Executions.
+- **1.3 Strategy Generator**: Deterministic concept extraction, keywords, synonyms, query builders.
+- **1.4 Academic Providers**: OpenAlex, Semantic Scholar, Crossref, and arXiv API clients with rate-limiting and polite headers.
+- **1.5 Deduplication**: Canonical `NormalizedPaper` model, multi-tier deduplication.
+- **1.6 REST API & MCP Server**: Comprehensive REST endpoints and Model Context Protocol search tools.
+- **1.7 Literature Dashboard**: Academic frontend in React 19 + TypeScript + Vite.
 
 ---
 
-## 3. Work Completed Log
-- **Phase 1 Complete**: Full end-to-end literature retrieval module developed, integrated, tested, and documented.
-- **Automated Test Results**: 24 passed in 3.10s (`test_research_input.py`, `test_strategy_generation.py`, `test_normalization_and_deduplication.py`, `test_providers.py`, `test_api_endpoints.py`).
-- **Live Integration Verification**: Real-world retrieval tested against OpenAlex, Crossref, and arXiv, demonstrating live DOI and PDF link extraction.
-- **Frontend Production Build**: Clean TypeScript compilation (`tsc --noEmit`) and Vite production bundle generated without errors.
+## 3. Phase 2 Implementation Checklist (Completed)
+
+```
+[ Phase 2 Progress: 7 / 7 Modules Completed - 100% ]
+```
+
+- [x] **Module A: Automated Paper Screening & Criteria Evaluator**:
+  - 7-dimension criteria evaluation: Topic match, objective/RQ alignment, year window, publication type, methodology presence, empirical outcome presence, explicit inclusion/exclusion rules.
+  - Multi-stage screening (`title_abstract` -> `full_text` -> `manual_override`).
+  - Decisions categorized as `included`, `excluded`, or `needs_human_review` with confidence scoring and missing-information tracking.
+  - Non-destructive human override mechanism with reviewer notes, timestamps, and preserved original decisions.
+- [x] **Module B: Legal Open-Access Retrieval & Scientific PDF Processing**:
+  - Direct arXiv PDF fetching and OpenAlex open-access resolution.
+  - File magic-byte validation (`%PDF-`) and SHA-256 integrity digest computation.
+  - User PDF file upload endpoint and storage under `data/fulltext_documents/`.
+  - PyMuPDF (`fitz`) scientific document processing with regex-based section demarcation (Abstract, Intro, Related Work, Method, Experiments, Results, Discussion, Limitations, Conclusion, References).
+  - Reference section boundary isolation and text-density quality scoring (`is_scanned_ocr`).
+- [x] **Module C: Structured Scientific Evidence Extraction**:
+  - Zero-fabrication principle: No hallucinated metrics, strict distinction between `full_text` and `abstract_only`.
+  - Author-reported vs system-inferred limitation classification.
+  - Pluggable extraction backends: Rule-based linguistic/regex extractor, mock extractor for fixtures, LLM extractor with prompt-injection defense.
+  - Deep scientific schema: Research objective, methodology components, datasets, evaluation metrics, findings, limitations, future work, contributions, and epistemic uncertainties.
+- [x] **Module D: Verifiable Passage Tracking**:
+  - Relational passage anchoring linking extracted claims to verbatim text, page number, and section heading.
+  - Passage verification workflow: `machine_extracted`, `user_verified`, `flagged_incorrect`, `unsupported_needs_review`.
+- [x] **Module E: Relational Database Storage**:
+  - SQLite schema extensions: `screening_runs`, `screening_decisions`, `fulltext_documents`, `extraction_runs`, `evidence_records`, `evidence_passages`.
+  - Repository layer with transactional integrity.
+- [x] **Module F: MCP Tools Exposure**:
+  - `screen_research_paper` and `extract_paper_evidence` tools registered on `MCPServer`.
+- [x] **Module G: Frontend Screening & Evidence Dashboard**:
+  - Phase 2 active indicator on 12-week roadmap sidebar.
+  - Screening view with real-time KPI metrics, filter pills, paper cards with criteria evaluation breakdown.
+  - Human override controls with reason prompt.
+  - Full-text download & PDF upload actions.
+  - Evidence inspection modal with tabbed views, verbatim passage highlighting, and passage verification controls.
+- [x] **Module H: Automated Tests & Documentation**:
+  - 35/35 pytest tests passing with 0 errors (`backend/tests/`).
+  - Frontend production build 100% clean (`tsc && vite build`).
+  - Complete documentation: `phase2_implementation.md`, `screening_methodology.md`, `evidence_extraction_schema.md`, `pdf_processing.md`, `phase2_api_documentation.md`.
 
 ---
 
-## 4. Next Phase: Phase 2 Scope & Roadmap
-**Phase 2: Paper screening and evidence extraction**
-*Deliverables planned for Phase 2 (to be started only after user authorization):*
-1. Inclusion and exclusion criteria evaluation engine.
-2. Automated paper screening (Title & Abstract filter agent).
-3. Screening decision records with inclusion rationale.
-4. PDF download and full-text section extractor (Methodology, Datasets, Results, Limitations, Future Work).
-5. Source passage tracking and paragraph attribution.
+## 4. Next Phase: Phase 3 Scope & Roadmap
+**Phase 3: Evidence Database and Evidence Graph Construction**
+*Deliverables planned for Phase 3 (to begin only after user authorization):*
+1. Structured evidence graph database schema.
+2. Nodes: Papers, Objectives, Methods, Datasets, Metrics, Findings, Limitations, Passages.
+3. Edges: `uses_method`, `evaluated_on`, `claims_finding`, `identifies_limitation`, `supported_by_passage`, `cites`.
+4. Graph construction service and deduplication of entities (e.g., standardizing dataset and model names).
+5. Interactive graph visualization in the frontend.
+6. Traceability queries from claims to source papers.

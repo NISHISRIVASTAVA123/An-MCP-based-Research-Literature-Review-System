@@ -139,3 +139,126 @@ export function getExportUrl(requestId: string, format: 'csv' | 'json'): string 
   return `${API_BASE}/research-requests/${requestId}/export?format=${format}`;
 }
 
+
+// --- Phase 2: Paper Screening & Evidence Extraction API ---
+
+import {
+  ScreeningRun,
+  ScreeningDecision,
+  DocumentStatus,
+  DocumentRetrieveResponse,
+  EvidenceRecord,
+  EvidencePassage,
+} from '../types';
+
+export async function createScreeningRun(requestId: string): Promise<ScreeningRun> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/screening-runs`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to execute screening run' }));
+    throw new Error(err.detail || 'Failed to execute screening run');
+  }
+  return res.json();
+}
+
+export async function listScreeningRuns(requestId: string): Promise<ScreeningRun[]> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/screening-runs`);
+  if (!res.ok) throw new Error('Failed to load screening runs');
+  return res.json();
+}
+
+export async function getScreeningResults(
+  requestId: string,
+  runId?: string,
+  decision?: string
+): Promise<ScreeningDecision[]> {
+  const params = new URLSearchParams();
+  if (runId) params.append('run_id', runId);
+  if (decision) params.append('decision', decision);
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/screening-results?${params.toString()}`);
+  if (!res.ok) throw new Error('Failed to load screening results');
+  return res.json();
+}
+
+export async function overrideScreeningDecision(
+  paperId: string,
+  decision: 'included' | 'excluded' | 'needs_human_review',
+  reviewerNotes: string
+): Promise<ScreeningDecision> {
+  const res = await fetch(`${API_BASE}/papers/${paperId}/screening-decision`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ decision, reviewer_notes: reviewerNotes }),
+  });
+  if (!res.ok) throw new Error('Failed to override screening decision');
+  return res.json();
+}
+
+export async function retrievePaperFullText(paperId: string): Promise<DocumentRetrieveResponse> {
+  const res = await fetch(`${API_BASE}/papers/${paperId}/retrieve-full-text`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to retrieve full text');
+  return res.json();
+}
+
+export async function uploadPaperPdf(paperId: string, file: File): Promise<DocumentRetrieveResponse> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`${API_BASE}/papers/${paperId}/upload-pdf`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) throw new Error('Failed to upload PDF');
+  return res.json();
+}
+
+export async function getDocumentStatus(paperId: string): Promise<DocumentStatus> {
+  const res = await fetch(`${API_BASE}/papers/${paperId}/document-status`);
+  if (!res.ok) throw new Error('Failed to fetch document status');
+  return res.json();
+}
+
+export async function extractPaperEvidence(paperId: string, backend?: string): Promise<EvidenceRecord> {
+  const params = new URLSearchParams();
+  if (backend) params.append('backend', backend);
+  const res = await fetch(`${API_BASE}/papers/${paperId}/extract-evidence?${params.toString()}`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to extract evidence' }));
+    throw new Error(err.detail || 'Failed to extract evidence');
+  }
+  return res.json();
+}
+
+export async function getPaperEvidence(paperId: string): Promise<EvidenceRecord | null> {
+  const res = await fetch(`${API_BASE}/papers/${paperId}/evidence`);
+  if (!res.ok) throw new Error('Failed to fetch paper evidence');
+  return res.json();
+}
+
+export async function getEvidencePassages(paperId: string): Promise<EvidencePassage[]> {
+  const res = await fetch(`${API_BASE}/papers/${paperId}/evidence-passages`);
+  if (!res.ok) throw new Error('Failed to fetch evidence passages');
+  return res.json();
+}
+
+export async function updateEvidencePassage(
+  passageId: string,
+  payload: {
+    verification_status: string;
+    statement?: string;
+    verbatim_passage?: string;
+    user_notes?: string;
+  }
+): Promise<EvidencePassage> {
+  const res = await fetch(`${API_BASE}/evidence/passages/${passageId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to update evidence passage');
+  return res.json();
+}

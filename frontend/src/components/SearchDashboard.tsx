@@ -5,7 +5,7 @@ import {
   PaperListResponse,
   SearchExecutionSummary,
 } from '../types';
-import { listPapers, getExportUrl, getSearchHistory } from '../services/api';
+import { listPapers, getExportUrl } from '../services/api';
 import {
   Search,
   Download,
@@ -17,8 +17,13 @@ import {
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
-  Sparkles,
   BookOpen,
+  Layers,
+  Database,
+  Calendar,
+  Sparkles,
+  ArrowUpDown,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 interface SearchDashboardProps {
@@ -26,13 +31,22 @@ interface SearchDashboardProps {
   onModifyStrategy: () => void;
   onSelectPaper: (paper: Paper) => void;
   lastExecution?: SearchExecutionSummary;
+  onProceedToScreening?: () => void;
 }
+
+const DB_COLORS: Record<string, { bg: string; color: string; border: string }> = {
+  openalex: { bg: '#e0f2fe', color: '#0369a1', border: '#bae6fd' },
+  semantic_scholar: { bg: '#f3e8ff', color: '#6d28d9', border: '#ddd6fe' },
+  crossref: { bg: '#fef3c7', color: '#92400e', border: '#fde68a' },
+  arxiv: { bg: '#fee2e2', color: '#991b1b', border: '#fecaca' },
+};
 
 export const SearchDashboard: React.FC<SearchDashboardProps> = ({
   request,
   onModifyStrategy,
   onSelectPaper,
   lastExecution,
+  onProceedToScreening,
 }) => {
   const [papersData, setPapersData] = useState<PaperListResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,136 +95,212 @@ export const SearchDashboard: React.FC<SearchDashboardProps> = ({
 
   useEffect(() => {
     loadPapers();
-  }, [request.id, searchTerm, selectedDb, yearFrom, yearTo, hasAbstractOnly, hasPdfOnly, sortBy, sortOrder, page, pageSize]);
+  }, [
+    request.id,
+    searchTerm,
+    selectedDb,
+    yearFrom,
+    yearTo,
+    hasAbstractOnly,
+    hasPdfOnly,
+    sortBy,
+    sortOrder,
+    page,
+    pageSize,
+  ]);
+
+  const rawCount = lastExecution?.total_raw_retrieved ?? (papersData?.total || 0);
+  const uniqueCount = papersData?.total || 0;
+  const dupesCount = lastExecution?.total_duplicates_removed ?? 0;
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header & Metrics Summary */}
-      <div className="academic-card p-6 bg-white border border-slate-200">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-100 pb-5 mb-5">
-          <div>
-            <div className="flex items-center gap-2 text-indigo-600 text-xs font-semibold uppercase tracking-wider mb-1">
-              <BookOpen className="h-4 w-4" />
-              <span>Academic Literature Retrieval Dashboard</span>
+    <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      {/* Top Banner / Review Overview */}
+      <div className="card-dark" style={{ padding: '1.75rem 2rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+              <div style={{ padding: '0.3rem', borderRadius: '0.4rem', background: 'rgba(129,140,248,.2)' }}>
+                <BookOpen size={16} color="#a5b4fc" />
+              </div>
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#a5b4fc' }}>
+                Step 3 · Literature Corpus Dashboard (Phase 1)
+              </span>
             </div>
-            <h2 className="text-xl font-bold font-serif text-slate-900">{request.topic}</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Domain: {request.domain} • Scope: {request.start_year}–{request.end_year} • Citation: {request.citation_style}
-            </p>
+            <h2 style={{ fontFamily: 'Sora, sans-serif', fontWeight: 800, fontSize: '1.35rem', color: '#fff', marginBottom: '0.4rem' }}>
+              {request.topic}
+            </h2>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)' }}>
+              <span>Domain: <strong style={{ color: '#fff' }}>{request.domain}</strong></span>
+              <span>•</span>
+              <span>Timeframe: <strong style={{ color: '#fff' }}>{request.start_year}–{request.end_year}</strong></span>
+              <span>•</span>
+              <span>Citation: <strong style={{ color: '#fff' }}>{request.citation_style}</strong></span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+            {onProceedToScreening && (
+              <button
+                onClick={onProceedToScreening}
+                className="btn btn-sm"
+                style={{
+                  background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                  color: '#fff',
+                  border: 'none',
+                  fontWeight: 700,
+                  boxShadow: '0 2px 8px rgba(2, 132, 199, 0.4)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <Sparkles size={13} color="#7dd3fc" />
+                <span>Screening & Evidence (Phase 2) →</span>
+              </button>
+            )}
+
             <button
               onClick={onModifyStrategy}
-              className="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5"
+              className="btn btn-sm"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.85)',
+                border: '1px solid rgba(255,255,255,0.15)',
+              }}
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>Search Strategy</span>
+              <RotateCcw size={13} />
+              <span>Modify Strategy</span>
             </button>
 
-            {/* Export buttons */}
             <a
               href={getExportUrl(request.id, 'csv')}
               download
-              className="btn-secondary text-xs py-2 px-3 flex items-center gap-1.5 text-slate-700 hover:text-indigo-600"
-              title="Export all collected papers as CSV with provenance metadata"
+              className="btn btn-sm"
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                color: '#34d399',
+                border: '1px solid rgba(52,211,153,0.3)',
+              }}
+              title="Download normalized corpus as CSV with citation and source metadata"
             >
-              <Download className="h-3.5 w-3.5" />
+              <FileSpreadsheet size={13} />
               <span>Export CSV</span>
             </a>
 
             <a
               href={getExportUrl(request.id, 'json')}
               download
-              className="btn-primary text-xs py-2 px-3.5 flex items-center gap-1.5 shadow-xs"
-              title="Export complete normalized corpus as JSON"
+              className="btn btn-sm btn-primary"
+              style={{ padding: '0.45rem 1rem' }}
+              title="Export complete canonical corpus in JSON format"
             >
-              <Download className="h-3.5 w-3.5" />
+              <Download size={13} />
               <span>Export JSON</span>
             </a>
           </div>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Raw Records Retrieved
-            </span>
-            <span className="text-2xl font-bold text-slate-800 font-mono">
-              {lastExecution?.total_raw_retrieved ?? (papersData?.total || 0)}
-            </span>
+        {/* 4 Metrics Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginTop: '1.5rem' }}>
+          <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '0.75rem', padding: '1rem 1.25rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.35rem' }}>
+              Raw Retrieved
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: '#fff' }}>
+              {rawCount}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.2rem' }}>
+              All queries across APIs
+            </div>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-indigo-50/60 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-indigo-700 uppercase tracking-wider block">
-              Unique Canonical Papers
-            </span>
-            <span className="text-2xl font-bold text-indigo-900 font-mono">
-              {papersData?.total || 0}
-            </span>
+          <div style={{ background: 'rgba(99,102,241,0.15)', borderRadius: '0.75rem', padding: '1rem 1.25rem', border: '1px solid rgba(129,140,248,0.3)' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#a5b4fc', marginBottom: '0.35rem' }}>
+              Canonical Papers
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: '#e0e7ff' }}>
+              {uniqueCount}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#a5b4fc', marginTop: '0.2rem' }}>
+              Unique deduplicated works
+            </div>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-emerald-50/60 border border-emerald-100">
-            <span className="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider block">
+          <div style={{ background: 'rgba(16,185,129,0.12)', borderRadius: '0.75rem', padding: '1rem 1.25rem', border: '1px solid rgba(52,211,153,0.3)' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#6ee7b7', marginBottom: '0.35rem' }}>
               Duplicates Merged
-            </span>
-            <span className="text-2xl font-bold text-emerald-800 font-mono">
-              {lastExecution?.total_duplicates_removed ?? 0}
-            </span>
+            </div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, fontFamily: 'JetBrains Mono, monospace', color: '#a7f3d0' }}>
+              {dupesCount}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: '#6ee7b7', marginTop: '0.2rem' }}>
+              Title & DOI normalization
+            </div>
           </div>
 
-          <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
-              Retrieval Status
-            </span>
-            <div className="flex items-center gap-1.5 mt-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs font-semibold text-slate-700 capitalize">
+          <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '0.75rem', padding: '1rem 1.25rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: '0.35rem' }}>
+              Corpus Status
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
+              <span className="status-dot success" />
+              <span style={{ fontSize: '1.15rem', fontWeight: 700, color: '#34d399', textTransform: 'capitalize' }}>
                 {lastExecution?.status || 'Active'}
               </span>
+            </div>
+            <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', marginTop: '0.45rem' }}>
+              Persisted in SQLite database
             </div>
           </div>
         </div>
 
         {/* Provider Breakdown Badges */}
         {lastExecution?.provider_statuses && (
-          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-            <span className="text-[11px] font-medium text-slate-400 uppercase tracking-wider mr-1">
-              Providers:
+          <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginRight: '0.25rem' }}>
+              Academic Sources:
             </span>
-            {Object.entries(lastExecution.provider_statuses).map(([prov, st]) => (
-              <span
-                key={prov}
-                className={`badge ${
-                  st.status === 'success'
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                    : 'bg-amber-50 text-amber-800 border-amber-200'
-                }`}
-                title={st.error || 'Provider healthy'}
-              >
-                {st.status === 'success' ? (
-                  <CheckCircle2 className="h-3 w-3 text-emerald-600 mr-1" />
-                ) : (
-                  <AlertTriangle className="h-3 w-3 text-amber-600 mr-1" />
-                )}
-                <span className="capitalize">{prov}:</span> {st.retrieved_count}
-              </span>
-            ))}
+            {Object.entries(lastExecution.provider_statuses).map(([prov, st]) => {
+              const isSuccess = st.status === 'success';
+              return (
+                <div
+                  key={prov}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.25rem 0.65rem',
+                    borderRadius: '100px',
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    background: isSuccess ? 'rgba(16,185,129,0.18)' : 'rgba(245,158,11,0.18)',
+                    color: isSuccess ? '#6ee7b7' : '#fcd34d',
+                    border: `1px solid ${isSuccess ? 'rgba(52,211,153,0.3)' : 'rgba(251,191,36,0.3)'}`,
+                  }}
+                  title={st.error || 'Provider healthy'}
+                >
+                  {isSuccess ? <CheckCircle2 size={12} color="#34d399" /> : <AlertTriangle size={12} color="#fbbf24" />}
+                  <span style={{ textTransform: 'capitalize' }}>{prov.replace('_', ' ')}:</span>
+                  <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{st.retrieved_count}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
       {/* Filter and Search Controls */}
-      <div className="academic-card p-4 bg-white space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+      <div className="card" style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1.8fr) 1.2fr 1fr 1fr', gap: '0.75rem', alignItems: 'center' }}>
           {/* Search Input */}
-          <div className="sm:col-span-5 relative">
-            <Search className="h-4 w-4 text-slate-400 absolute left-3 top-3" />
+          <div style={{ position: 'relative' }}>
+            <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: 11, top: 11 }} />
             <input
               type="text"
-              placeholder="Filter by title, abstract keyword, or DOI..."
-              className="input-base pl-9 text-xs"
+              placeholder="Search by title, keyword, or DOI..."
+              className="input"
+              style={{ paddingLeft: 34, fontSize: '0.82rem' }}
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -220,9 +310,10 @@ export const SearchDashboard: React.FC<SearchDashboardProps> = ({
           </div>
 
           {/* Database Filter */}
-          <div className="sm:col-span-3">
+          <div>
             <select
-              className="input-base text-xs"
+              className="input"
+              style={{ fontSize: '0.82rem' }}
               value={selectedDb}
               onChange={(e) => {
                 setSelectedDb(e.target.value);
@@ -238,21 +329,24 @@ export const SearchDashboard: React.FC<SearchDashboardProps> = ({
           </div>
 
           {/* Sort By */}
-          <div className="sm:col-span-2">
+          <div>
             <select
-              className="input-base text-xs"
+              className="input"
+              style={{ fontSize: '0.82rem' }}
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
             >
-              <option value="year">Sort: Year</option>
-              <option value="title">Sort: Title</option>
+              <option value="year">Sort: Publication Year</option>
               <option value="citations">Sort: Citations</option>
+              <option value="title">Sort: Title</option>
             </select>
           </div>
 
-          <div className="sm:col-span-2">
+          {/* Sort Order */}
+          <div>
             <select
-              className="input-base text-xs"
+              className="input"
+              style={{ fontSize: '0.82rem' }}
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
             >
@@ -262,173 +356,216 @@ export const SearchDashboard: React.FC<SearchDashboardProps> = ({
           </div>
         </div>
 
-        {/* Checkbox Toggles */}
-        <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-600 border-t border-slate-100">
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hasAbstractOnly}
-              onChange={(e) => {
-                setHasAbstractOnly(e.target.checked);
-                setPage(1);
-              }}
-              className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
-            />
-            <span>Has Abstract Only</span>
-          </label>
+        {/* Checkbox Toggles & Results summary */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', fontSize: '0.8rem', color: '#475569' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={hasAbstractOnly}
+                onChange={(e) => {
+                  setHasAbstractOnly(e.target.checked);
+                  setPage(1);
+                }}
+                style={{ accentColor: '#6366f1', width: 15, height: 15 }}
+              />
+              <span style={{ fontWeight: 500 }}>Has Abstract</span>
+            </label>
 
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hasPdfOnly}
-              onChange={(e) => {
-                setHasPdfOnly(e.target.checked);
-                setPage(1);
-              }}
-              className="rounded border-slate-300 text-indigo-600 h-3.5 w-3.5"
-            />
-            <span>Has PDF Only</span>
-          </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', userSelect: 'none' }}>
+              <input
+                type="checkbox"
+                checked={hasPdfOnly}
+                onChange={(e) => {
+                  setHasPdfOnly(e.target.checked);
+                  setPage(1);
+                }}
+                style={{ accentColor: '#6366f1', width: 15, height: 15 }}
+              />
+              <span style={{ fontWeight: 500 }}>Has PDF Access</span>
+            </label>
+          </div>
 
-          <span className="text-slate-300">|</span>
-          <span className="text-[11px] text-slate-400 font-mono">
-            Showing {papersData?.items.length || 0} of {papersData?.total || 0} papers
-          </span>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontFamily: 'JetBrains Mono, monospace' }}>
+            Showing <strong>{papersData?.items.length || 0}</strong> of <strong>{papersData?.total || 0}</strong> papers
+          </div>
         </div>
       </div>
 
       {/* Papers List */}
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
         {isLoading ? (
-          <div className="academic-card p-12 text-center text-slate-500">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mb-3"></div>
-            <p className="text-sm font-medium">Loading normalized literature corpus...</p>
+          <div className="card" style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b' }}>
+            <div className="spinner" style={{ margin: '0 auto 1rem' }} />
+            <p style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b' }}>Filtering normalized literature corpus...</p>
+            <p style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '0.25rem' }}>Querying normalized SQLite repositories</p>
           </div>
         ) : !papersData || papersData.items.length === 0 ? (
-          <div className="academic-card p-12 text-center text-slate-500">
-            <BookOpen className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm font-medium text-slate-700">No papers match your filter criteria.</p>
-            <p className="text-xs text-slate-400 mt-1">Try clearing filters or running a broader search query.</p>
+          <div className="card" style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b' }}>
+            <BookOpen size={36} color="#cbd5e1" style={{ margin: '0 auto 0.75rem' }} />
+            <p style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>No papers match your search criteria.</p>
+            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>Try clearing filters or running a broader search strategy query.</p>
           </div>
         ) : (
           papersData.items.map((paper) => {
             const isExpanded = expandedAbstracts[paper.id];
+            const primarySource = paper.sources[0]?.source_database || 'openalex';
+            const borderClass =
+              paper.sources.length > 1
+                ? 'paper-card-border-multiple'
+                : `paper-card-border-${primarySource}`;
+
             return (
               <div
                 key={paper.id}
-                className="academic-card p-5 hover:border-indigo-200 transition-all bg-white"
+                className={`card ${borderClass}`}
+                style={{ padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '0.65rem' }}
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1.5 flex-1">
-                    {/* Title */}
-                    <h3
-                      onClick={() => onSelectPaper(paper)}
-                      className="text-base font-bold font-serif text-slate-900 hover:text-indigo-600 cursor-pointer transition-colors"
-                    >
-                      {paper.title}
-                    </h3>
-
-                    {/* Authors & Meta */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-                      <span className="font-medium text-slate-700">
-                        {paper.authors.length > 0 ? paper.authors.join(', ') : 'Unknown Authors'}
-                      </span>
-                      {paper.publication_year && (
-                        <>
-                          <span className="text-slate-300">•</span>
-                          <span className="font-mono">{paper.publication_year}</span>
-                        </>
-                      )}
-                      {paper.venue && (
-                        <>
-                          <span className="text-slate-300">•</span>
-                          <span className="italic text-slate-500">{paper.venue}</span>
-                        </>
-                      )}
-                      {paper.citation_count !== undefined && paper.citation_count > 0 && (
-                        <>
-                          <span className="text-slate-300">•</span>
-                          <span className="text-emerald-700 font-semibold">
-                            {paper.citation_count} citations
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Badges / Provenance */}
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      {paper.sources.map((src, i) => (
-                        <span key={i} className={`badge badge-${src.source_database}`}>
-                          {src.source_database}
-                        </span>
-                      ))}
-
-                      {paper.doi && (
-                        <a
-                          href={`https://doi.org/${paper.doi}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="badge bg-slate-100 text-slate-700 border border-slate-200 font-mono hover:text-indigo-600"
-                        >
-                          DOI: {paper.doi}
-                          <ExternalLink className="h-2.5 w-2.5 ml-1" />
-                        </a>
-                      )}
-
-                      {paper.pdf_url && (
-                        <a
-                          href={paper.pdf_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="badge bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
-                        >
-                          <FileText className="h-3 w-3 mr-1" />
-                          PDF Available
-                          <ExternalLink className="h-2.5 w-2.5 ml-1" />
-                        </a>
-                      )}
-
-                      {paper.publication_type && (
-                        <span className="badge bg-slate-50 text-slate-500 border border-slate-200">
-                          {paper.publication_type}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Abstract Preview */}
-                    {paper.abstract && (
-                      <div className="pt-2 text-xs text-slate-600">
-                        <p className={isExpanded ? '' : 'line-clamp-2'}>
-                          {paper.abstract}
-                        </p>
-                        <button
-                          onClick={() => toggleAbstract(paper.id)}
-                          className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 mt-1 flex items-center gap-0.5"
-                        >
-                          {isExpanded ? (
-                            <>
-                              <span>Show Less</span>
-                              <ChevronUp className="h-3 w-3" />
-                            </>
-                          ) : (
-                            <>
-                              <span>Read Abstract</span>
-                              <ChevronDown className="h-3 w-3" />
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                {/* Title & View Details button */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                  <h3
+                    onClick={() => onSelectPaper(paper)}
+                    style={{
+                      fontFamily: 'Sora, sans-serif',
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      lineHeight: 1.4,
+                      transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = '#4f46e5')}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = '#0f172a')}
+                  >
+                    {paper.title}
+                  </h3>
 
                   <button
                     onClick={() => onSelectPaper(paper)}
-                    className="p-2 text-slate-400 hover:text-indigo-600 rounded-md hover:bg-slate-50 transition-colors text-xs font-medium"
-                    title="View full metadata & provenance"
+                    className="btn btn-secondary btn-sm"
+                    style={{ flexShrink: 0, padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                    title="Inspect complete metadata and provenance"
                   >
-                    View Details
+                    Inspect Details
                   </button>
                 </div>
+
+                {/* Authors, Year, Venue, Citation count */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', fontSize: '0.78rem', color: '#475569' }}>
+                  <span style={{ fontWeight: 600, color: '#1e293b' }}>
+                    {paper.authors.length > 0 ? paper.authors.join(', ') : 'Unknown Authors'}
+                  </span>
+                  {paper.publication_year && (
+                    <>
+                      <span style={{ color: '#cbd5e1' }}>•</span>
+                      <span style={{ fontFamily: 'JetBrains Mono, monospace', fontWeight: 500 }}>{paper.publication_year}</span>
+                    </>
+                  )}
+                  {paper.venue && (
+                    <>
+                      <span style={{ color: '#cbd5e1' }}>•</span>
+                      <span style={{ fontStyle: 'italic', color: '#64748b' }}>{paper.venue}</span>
+                    </>
+                  )}
+                  {paper.citation_count !== undefined && paper.citation_count > 0 && (
+                    <>
+                      <span style={{ color: '#cbd5e1' }}>•</span>
+                      <span style={{ color: '#059669', fontWeight: 700, background: '#ecfdf5', padding: '0.1rem 0.45rem', borderRadius: '100px', fontSize: '0.72rem' }}>
+                        {paper.citation_count} citations
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Badges / Provenance */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', paddingTop: '0.2rem' }}>
+                  {paper.sources.map((src, i) => {
+                    const dbStyle = DB_COLORS[src.source_database] || { bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' };
+                    return (
+                      <span
+                        key={i}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          padding: '0.15rem 0.55rem',
+                          borderRadius: '100px',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          background: dbStyle.bg,
+                          color: dbStyle.color,
+                          border: `1px solid ${dbStyle.border}`,
+                        }}
+                      >
+                        {src.source_database}
+                      </span>
+                    );
+                  })}
+
+                  {paper.doi && (
+                    <a
+                      href={`https://doi.org/${paper.doi}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="badge badge-neutral"
+                      style={{ fontFamily: 'JetBrains Mono, monospace', textDecoration: 'none' }}
+                    >
+                      DOI: {paper.doi}
+                      <ExternalLink size={10} style={{ marginLeft: 3 }} />
+                    </a>
+                  )}
+
+                  {paper.pdf_url && (
+                    <a
+                      href={paper.pdf_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="badge badge-success"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <FileText size={11} style={{ marginRight: 2 }} />
+                      PDF Available
+                      <ExternalLink size={10} style={{ marginLeft: 3 }} />
+                    </a>
+                  )}
+
+                  {paper.publication_type && (
+                    <span className="badge badge-neutral" style={{ textTransform: 'capitalize' }}>
+                      {paper.publication_type}
+                    </span>
+                  )}
+                </div>
+
+                {/* Abstract Preview */}
+                {paper.abstract && (
+                  <div style={{ paddingTop: '0.35rem', fontSize: '0.8rem', color: '#475569', lineHeight: 1.55 }}>
+                    <p className={isExpanded ? '' : 'line-clamp-2'}>
+                      {paper.abstract}
+                    </p>
+                    <button
+                      onClick={() => toggleAbstract(paper.id)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#4f46e5',
+                        fontWeight: 600,
+                        fontSize: '0.74rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                        marginTop: '0.35rem',
+                        padding: 0,
+                      }}
+                    >
+                      {isExpanded ? (
+                        <><span>Show Less</span><ChevronUp size={13} /></>
+                      ) : (
+                        <><span>Read Full Abstract</span><ChevronDown size={13} /></>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })
@@ -437,21 +574,21 @@ export const SearchDashboard: React.FC<SearchDashboardProps> = ({
 
       {/* Pagination Bar */}
       {papersData && papersData.total_pages > 1 && (
-        <div className="academic-card p-4 bg-white flex items-center justify-between text-xs">
+        <div className="card" style={{ padding: '0.9rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.82rem' }}>
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="btn-secondary py-1.5 px-3 disabled:opacity-40"
+            className="btn btn-secondary btn-sm"
           >
             Previous
           </button>
-          <span className="font-mono text-slate-600">
+          <span style={{ fontFamily: 'JetBrains Mono, monospace', color: '#64748b', fontWeight: 600 }}>
             Page {page} of {papersData.total_pages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(papersData.total_pages, p + 1))}
             disabled={page === papersData.total_pages}
-            className="btn-secondary py-1.5 px-3 disabled:opacity-40"
+            className="btn btn-secondary btn-sm"
           >
             Next
           </button>
@@ -460,4 +597,3 @@ export const SearchDashboard: React.FC<SearchDashboardProps> = ({
     </div>
   );
 };
-

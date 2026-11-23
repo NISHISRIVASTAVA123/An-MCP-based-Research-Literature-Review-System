@@ -2,7 +2,7 @@
 
 > **Academic Capstone Research Project** | B.Tech Computer Science (Team of 3)  
 > **12-Week Roadmap Target**: Autonomous Evidence Graph & Counterevidence Gap Verification System  
-> **Current Status**: **Phase 1 Complete (Research Input, Search Strategy & Academic Literature Retrieval)**
+> **Current Status**: **Phase 1 & Phase 2 Complete (Retrieval, Screening & Structured Evidence Extraction)**
 
 ---
 
@@ -16,32 +16,36 @@ This application investigates the following central research hypothesis:
 
 | Phase | Milestone Description | Status |
 |---|---|---|
-| **Phase 1** | **Research input, search strategy & academic literature retrieval** | **COMPLETED** |
-| Phase 2 | Paper screening & structured evidence extraction | Queued |
-| Phase 3 | Structured evidence database & evidence graph construction | Queued |
-| Phase 4 | Literature synthesis & baseline research-gap generation | Queued |
-| Phase 5 | Explicit counterevidence retrieval | Queued |
-| Phase 6 | Evidence-graph-based claim verification | Queued |
-| Phase 7 | Coverage-aware research-gap assessment (4-way classification) | Queued |
-| Phase 8 | Comprehensive literature review & gap report generator | Queued |
-| Phase 9 | Experimental evaluation, ablations & benchmark comparisons | Queued |
+| **Phase 1** | **Research input, search strategy & academic literature retrieval** | 🟢 **COMPLETED** |
+| **Phase 2** | **Paper screening and structured evidence extraction** | 🟢 **COMPLETED** |
+| Phase 3 | Structured evidence database & evidence graph construction | ⚪ Queued |
+| Phase 4 | Literature synthesis & baseline research-gap generation | ⚪ Queued |
+| Phase 5 | Explicit counterevidence retrieval | ⚪ Queued |
+| Phase 6 | Evidence-graph-based claim verification | ⚪ Queued |
+| Phase 7 | Coverage-aware research-gap assessment (4-way classification) | ⚪ Queued |
+| Phase 8 | Comprehensive literature review & gap report generator | ⚪ Queued |
+| Phase 9 | Experimental evaluation, ablations & benchmark comparisons | ⚪ Queued |
 
 ---
 
-## 2. Phase 1 Features Delivered
+## 2. Features Delivered (Phases 1 & 2)
 
+### Phase 1: Literature Retrieval & Corpus Management
 - **Research Input Interface**: Academic request form accepting topic, objective, dynamic research questions, scientific domain, publication timeframe, citation format, inclusion/exclusion criteria, and database targets with full validation.
 - **Academic Strategy Generator**: Deterministic concept extraction, academic keyword expansion, synonym decomposition, and database-specific query builder (OpenAlex, Semantic Scholar, Crossref, arXiv).
-- **Independent Academic Adapters**:
-  - **OpenAlex Works API**: Full bibliographic retrieval, author disambiguation, abstract reconstruction from inverted index, polite pool contact header.
-  - **Semantic Scholar Graph API**: Academic citation metadata, open-access PDF resolution, venue tracking, API key support.
-  - **Crossref Works API**: Direct DOI resolution, JATS XML abstract cleaning, polite mailto rate-limit optimization.
-  - **arXiv Preprints API**: Atom XML feed parser, category tagging, direct open-access PDF extraction.
-- **Canonical Normalization**: Standardized `NormalizedPaper` and `PaperSource` models preserving source provenance and external IDs.
+- **Independent Academic Adapters**: OpenAlex Works API, Semantic Scholar Graph API, Crossref Works API, arXiv Preprints API.
 - **Hierarchical Deduplication**: Multi-tier duplicate detection (exact DOI -> normalized title + publication year +/- 1 year tolerance) with provenance merging.
-- **Relational Persistence**: SQLite (with zero-change PostgreSQL migration readiness via SQLAlchemy 2.0).
-- **Official Model Context Protocol (MCP) Server**: Python MCP server exposing tools (`search_openalex`, `search_semantic_scholar`, `search_crossref`, `search_arxiv`, `retrieve_paper_by_doi`, `generate_academic_search_strategy`) for autonomous agents.
-- **Academic Frontend Dashboard**: React 19 + TypeScript + Vite dashboard featuring metrics cards, real-time filtering, year range selection, sorting, interactive abstract preview, provenance inspector, CSV & JSON export, and past review reopening.
+- **Relational Persistence**: SQLite database initialized with SQLAlchemy 2.0 ORM.
+
+### Phase 2: Paper Screening & Evidence Extraction
+- **Automated Multi-Stage Paper Screening**: 7-dimension criteria evaluator testing domain scope, timeframe, publication venue/type, methodology relevance, and empirical outcome presence.
+- **Non-Destructive Human Overrides**: Complete audit trail preserving automated decisions, reviewer notes, and timestamps.
+- **Legal Open-Access & arXiv Full-Text Retrieval**: Automated PDF fetching with magic-byte validation, cryptographic SHA-256 integrity, and user manual PDF upload support.
+- **PyMuPDF Scientific Section Parsing**: Robust layout parser segmenting Abstract, Intro, Methodology, Experiments, Results, Discussion, Limitations, and isolating References.
+- **Structured Evidence Extraction (Zero-Fabrication Principle)**: Granular extraction of objectives, methodology, datasets, evaluation metrics, findings, limitations, and epistemic uncertainties.
+- **Verifiable Passage Tracking**: Source anchoring mapping every extracted scientific claim to a verbatim text passage, page number, and section heading with researcher verification workflow.
+- **Model Context Protocol (MCP) Tools**: Native `screen_research_paper` and `extract_paper_evidence` tools.
+- **Interactive UI**: Screening dashboard with real-time KPI metrics, criteria inspection, PDF upload, override controls, and tabbed evidence explorer.
 
 ---
 
@@ -56,11 +60,8 @@ This application investigates the following central research hypothesis:
 # 1. Navigate to project root
 cd "c:\Users\Nishi\Desktop\MCP based  Research Literature review system"
 
-# 2. Configure environment (optional custom keys)
-copy backend\.env.example backend\.env
-
-# 3. Start the FastAPI backend
-python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+# 2. Start the FastAPI backend
+python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 ```
 Once started:
 - **Interactive API Documentation (Swagger)**: http://127.0.0.1:8000/docs
@@ -80,79 +81,46 @@ Open **http://localhost:5173** (API calls are automatically proxied to port 8000
 
 ## 4. Running the Tests
 
-### 4.1 Automated Unit & Integration Tests (Mocked APIs)
+### 4.1 Automated Test Suite
 ```powershell
 $env:PYTHONPATH="."
 python -m pytest backend/tests -v
 ```
-*Executes all 24 automated test cases across request validation, query generation, metadata normalization, multi-tier deduplication, mocked provider adapters, and REST API endpoints.*
+*Executes all 35 automated test cases across research input, query generation, deduplication, mocked providers, PDF layout parsing, rule-based evidence extraction, and Phase 2 API endpoints.*
 
-### 4.2 Live Real-World Academic Retrieval Test
+### 4.2 Frontend Production Build
 ```powershell
-$env:PYTHONPATH="."
-python backend/scripts/live_integration_test.py
+cd frontend
+npm run build
 ```
-*Queries live OpenAlex, Semantic Scholar, Crossref, and arXiv APIs over the internet, demonstrating live parsing, rate-limit resilience, normalization, and deduplication.*
+*Verifies 100% clean TypeScript compilation and bundles production assets into `dist/`.*
 
 ---
 
 ## 5. Model Context Protocol (MCP) Integration
 
-The project exposes standard MCP tools for autonomous AI agent pair-programming:
+The server provides a native Model Context Protocol (MCP) server compatible with Claude Desktop and external LLM agents:
 
-```powershell
-# Run the MCP server with stdio transport
-python -m backend.app.services.mcp.server
+```json
+{
+  "mcpServers": {
+    "academic-literature-reviewer": {
+      "command": "python",
+      "args": ["-m", "backend.app.services.mcp.server"],
+      "env": {
+        "PYTHONPATH": "."
+      }
+    }
+  }
+}
 ```
 
-### Registered MCP Tools:
-1. `search_openalex(query, start_year, end_year, limit)`: Searches OpenAlex repository.
-2. `search_semantic_scholar(query, start_year, end_year, limit)`: Searches Semantic Scholar graph.
-3. `search_crossref(query, start_year, end_year, limit)`: Searches Crossref registry.
-4. `search_arxiv(query, start_year, end_year, limit)`: Searches arXiv preprints.
-5. `retrieve_paper_by_doi(doi, provider)`: Resolves paper metadata by DOI.
-6. `generate_academic_search_strategy(topic, objective, domain, research_questions)`: Generates query combinations.
-
----
-
-## 6. Project Architecture & Directory Layout
-
-```
-├── backend/
-│   ├── app/
-│   │   ├── main.py                     # FastAPI application & static server
-│   │   ├── core/                       # Settings, config, logging
-│   │   ├── models/                     # SQLAlchemy 2.0 schema (Requests, Papers, Executions)
-│   │   ├── schemas/                    # Pydantic v2 validation models
-│   │   ├── services/
-│   │   │   ├── planner/                # Concept extractor, keyword expander, query builders
-│   │   │   ├── providers/              # OpenAlex, Semantic Scholar, Crossref, arXiv adapters
-│   │   │   ├── literature/             # Normalization, deduplication, search orchestrator
-│   │   │   ├── mcp/                    # Python MCP server & tools
-│   │   │   └── persistence/            # DB engine, session maker, repositories
-│   │   └── api/routes/                 # REST endpoints (research, strategy, search, papers, export)
-│   ├── tests/                          # 24 pytest test suites
-│   ├── scripts/                        # Live API integration test script
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/                 # Academic UI components (Form, Strategy, Dashboard, Modals)
-│   │   ├── services/api.ts             # Typed API client
-│   │   ├── types/index.ts              # TypeScript domain types
-│   │   └── App.tsx
-│   ├── package.json
-│   └── vite.config.ts
-├── docs/                               # Architecture, progress tracker, API documentation
-└── README.md
-```
-
----
-
-## 7. Next Phase: Phase 2 Preparation
-
-Phase 1 provides the foundational literature ingestion and deduplication layer. In **Phase 2**, we will implement:
-- User-configurable Inclusion/Exclusion screening criteria.
-- Automated title/abstract paper screening agent.
-- PDF download and full-text section parser (extracting methodology, datasets, findings, and limitations).
-- Source passage attribution tracking.
-
+### Available Tools:
+1. `search_openalex`: Query OpenAlex for scientific works.
+2. `search_semantic_scholar`: Query Semantic Scholar Graph API.
+3. `search_crossref`: Query Crossref for works and DOI metadata.
+4. `search_arxiv`: Query arXiv for preprints.
+5. `retrieve_paper_by_doi`: Resolve DOI to canonical paper metadata.
+6. `generate_academic_search_strategy`: Decompose research topic into boolean search queries.
+7. `screen_research_paper`: Screen a paper against research scope and criteria.
+8. `extract_paper_evidence`: Extract structured findings, metrics, limitations, and verbatim passages.

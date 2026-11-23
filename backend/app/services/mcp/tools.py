@@ -94,3 +94,76 @@ def tool_generate_search_strategy(
     dbs = preferred_databases or ["openalex", "semantic_scholar", "crossref", "arxiv"]
     return strategy_planner.generate(topic, objective, domain, research_questions, dbs)
 
+
+def tool_screen_paper_content(
+    title: str,
+    abstract: str,
+    topic: str,
+    objective: str,
+    start_year: int,
+    end_year: int,
+    publication_year: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Performs staged screening evaluation on a paper's title and abstract."""
+    from backend.app.models.paper import Paper
+    from backend.app.models.research_request import ResearchRequest
+    from backend.app.services.screening.criteria_evaluator import ScreeningCriteriaEvaluator
+
+    dummy_paper = Paper(
+        id="mcp-temp",
+        request_id="mcp-req",
+        title=title,
+        normalized_title=title.lower(),
+        abstract=abstract,
+        publication_year=publication_year or start_year,
+        keywords=[],
+    )
+    dummy_req = ResearchRequest(
+        id="mcp-req",
+        topic=topic,
+        objective=objective,
+        domain="AI",
+        start_year=start_year,
+        end_year=end_year,
+    )
+    evaluator = ScreeningCriteriaEvaluator()
+    decision, reason, evaluated, satisfied, unsatisfied, missing, conf = evaluator.evaluate_paper(
+        dummy_paper, dummy_req
+    )
+    return {
+        "decision": decision,
+        "reason": reason,
+        "criteria_evaluated": evaluated,
+        "criteria_satisfied": satisfied,
+        "criteria_unsatisfied": unsatisfied,
+        "missing_information": missing,
+        "confidence_score": conf,
+    }
+
+
+async def tool_extract_paper_evidence(
+    paper_id: str,
+    title: str,
+    abstract: Optional[str] = None,
+    raw_text: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Extracts structured research objectives, methodologies, datasets, findings, and limitations."""
+    from backend.app.services.extraction.rule_extractor import RuleBasedEvidenceExtractor
+
+    extractor = RuleBasedEvidenceExtractor()
+    sections = []
+    scope = "abstract_only"
+    if raw_text and len(raw_text) > 100:
+        sections = [{"page_number": 1, "heading": "Main Text", "text": raw_text}]
+        scope = "full_text"
+
+    res = await extractor.extract_evidence(
+        paper_id=paper_id,
+        title=title,
+        abstract=abstract,
+        fulltext_sections=sections,
+        source_scope=scope,
+    )
+    return res.model_dump()
+
+

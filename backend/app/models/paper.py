@@ -43,6 +43,18 @@ class Paper(Base):
     sources: Mapped[List["PaperSource"]] = relationship(
         "PaperSource", back_populates="paper", cascade="all, delete-orphan"
     )
+    screening_decisions: Mapped[List["ScreeningDecision"]] = relationship(
+        "ScreeningDecision", back_populates="paper", cascade="all, delete-orphan"
+    )
+    documents: Mapped[List["FulltextDocument"]] = relationship(
+        "FulltextDocument", back_populates="paper", cascade="all, delete-orphan"
+    )
+    extraction_runs: Mapped[List["ExtractionRun"]] = relationship(
+        "ExtractionRun", back_populates="paper", cascade="all, delete-orphan"
+    )
+    evidence_records: Mapped[List["EvidenceRecord"]] = relationship(
+        "EvidenceRecord", back_populates="paper", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("idx_papers_request_year", "request_id", "publication_year"),

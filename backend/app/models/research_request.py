@@ -44,6 +44,9 @@ class ResearchRequest(Base):
     papers: Mapped[List["Paper"]] = relationship(
         "Paper", back_populates="request", cascade="all, delete-orphan"
     )
+    screening_runs: Mapped[List["ScreeningRun"]] = relationship(
+        "ScreeningRun", back_populates="request", cascade="all, delete-orphan", order_by="desc(ScreeningRun.run_number)"
+    )
 
 
 class ResearchQuestion(Base):
