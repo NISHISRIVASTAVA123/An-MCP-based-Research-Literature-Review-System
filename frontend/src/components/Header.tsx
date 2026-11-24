@@ -5,7 +5,7 @@ interface HeaderProps {
   onNewReview: () => void;
   onOpenHistory: () => void;
   onOpenMcp: () => void;
-  activeStep: 'form' | 'strategy' | 'dashboard' | 'screening';
+  activeStep: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph';
 }
 
 const STEPS = [
@@ -13,6 +13,7 @@ const STEPS = [
   { id: 'strategy',  label: 'Search Strategy',    num: 2 },
   { id: 'dashboard', label: 'Corpus Results',     num: 3 },
   { id: 'screening', label: 'Screening & Evidence', num: 4 },
+  { id: 'graph',     label: 'Evidence Graph',     num: 5 },
 ] as const;
 
 export const Header: React.FC<HeaderProps> = ({
@@ -56,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
                 borderRadius: '100px', padding: '0.15rem 0.55rem',
                 border: '1px solid rgba(56,189,248,.35)',
               }}>
-                PHASE 2 ACTIVE
+                PHASE 3 ACTIVE
               </span>
             </div>
             <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>

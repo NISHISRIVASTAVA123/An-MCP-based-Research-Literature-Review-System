@@ -28,6 +28,7 @@ import {
   Sparkles,
   Search,
   ArrowLeft,
+  ArrowRight,
   ChevronDown,
   ChevronUp,
   UserCheck,
@@ -40,12 +41,14 @@ interface ScreeningViewProps {
   request: ResearchRequest;
   onBackToCorpus: () => void;
   onInspectEvidence: (evidence: EvidenceRecord, paperTitle: string) => void;
+  onProceedToGraph?: () => void;
 }
 
 export const ScreeningView: React.FC<ScreeningViewProps> = ({
   request,
   onBackToCorpus,
   onInspectEvidence,
+  onProceedToGraph,
 }) => {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [screeningRun, setScreeningRun] = useState<ScreeningRun | null>(null);
@@ -306,6 +309,30 @@ export const ScreeningView: React.FC<ScreeningViewProps> = ({
                 </>
               )}
             </button>
+
+            {onProceedToGraph && (
+              <button
+                onClick={onProceedToGraph}
+                className="btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                  color: '#fff',
+                  border: 'none',
+                  padding: '0.65rem 1.15rem',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(16,185,129,0.35)',
+                }}
+              >
+                <span>Explore Evidence Graph</span>
+                <ArrowRight size={15} />
+              </button>
+            )}
           </div>
         </div>
 

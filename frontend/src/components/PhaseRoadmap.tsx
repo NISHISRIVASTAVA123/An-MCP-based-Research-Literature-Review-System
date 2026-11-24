@@ -13,48 +13,50 @@ const PHASES = [
   {
     num: 2, label: 'Screening & Evidence',
     sub: 'Paper screening & structured extraction',
-    icon: ScanSearch, color: '#06b6d4', active: true, done: false,
+    icon: CheckCircle2, color: '#10b981', active: false, done: true,
   },
   {
-    num: 3, label: 'Evidence Database',
-    sub: 'Structured storage & schema',
-    icon: FileSearch, color: '#8b5cf6', active: false, done: false,
+    num: 3, label: 'Evidence Database & Graph',
+    sub: 'Graph construction & provenance',
+    icon: GitBranch, color: '#8b5cf6', active: true, done: false,
   },
   {
-    num: 4, label: 'Evidence Graph',
-    sub: 'Graph construction & visualization',
-    icon: GitBranch, color: '#10b981', active: false,
-  },
-  {
-    num: 5, label: 'Literature Synthesis',
+    num: 4, label: 'Literature Synthesis',
     sub: 'Gap identification baseline',
-    icon: Microscope, color: '#f59e0b', active: false,
+    icon: Microscope, color: '#f59e0b', active: false, done: false,
   },
   {
-    num: 6, label: 'Counterevidence Search',
+    num: 5, label: 'Counterevidence Search',
     sub: 'Gap-specific counter-retrieval',
-    icon: ShieldCheck, color: '#f43f5e', active: false,
+    icon: ShieldCheck, color: '#f43f5e', active: false, done: false,
   },
   {
-    num: 7, label: 'Claim Verification',
-    sub: 'Graph-based verification',
-    icon: CheckCircle2, color: '#06b6d4', active: false,
+    num: 6, label: 'Claim Verification',
+    sub: 'Graph-based claim verification',
+    icon: CheckCircle2, color: '#06b6d4', active: false, done: false,
   },
   {
-    num: 8, label: 'Coverage Assessment',
-    sub: '4-way gap classification',
-    icon: BarChart3, color: '#a855f7', active: false,
+    num: 7, label: 'Coverage Assessment',
+    sub: 'Coverage-aware gap classification',
+    icon: BarChart3, color: '#a855f7', active: false, done: false,
   },
   {
-    num: 9, label: 'Report Generation',
-    sub: 'Full review & PDF export',
-    icon: FileText, color: '#10b981', active: false,
+    num: 8, label: 'Report Generation',
+    sub: 'Full review & gap report export',
+    icon: FileText, color: '#10b981', active: false, done: false,
+  },
+  {
+    num: 9, label: 'Benchmark Evaluation',
+    sub: 'Ablations & human validation',
+    icon: FlaskConical, color: '#38bdf8', active: false, done: false,
   },
 ];
 
 interface PhaseRoadmapProps {
-  currentActiveStep?: 'form' | 'strategy' | 'dashboard' | 'screening';
+  currentActiveStep?: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph';
+  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph') => void;
 }
+
 
 export const PhaseRoadmap: React.FC<PhaseRoadmapProps> = ({ currentActiveStep }) => {
   return (

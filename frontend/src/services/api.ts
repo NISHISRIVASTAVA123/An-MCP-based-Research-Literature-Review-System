@@ -262,3 +262,75 @@ export async function updateEvidencePassage(
   if (!res.ok) throw new Error('Failed to update evidence passage');
   return res.json();
 }
+
+// -------------------------------------------------------------
+// Phase 3: Evidence Graph API Methods
+// -------------------------------------------------------------
+
+import {
+  EvidenceGraphData,
+  GraphStatistics,
+  GraphBuildRun,
+  GraphValidationRecord,
+  ProvenanceChain,
+} from '../types/graph';
+
+export async function buildEvidenceGraph(requestId: string): Promise<GraphBuildRun> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/evidence-graph/build`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to build evidence graph' }));
+    throw new Error(err.detail || 'Failed to build evidence graph');
+  }
+  return res.json();
+}
+
+export async function synchronizeEvidenceGraph(requestId: string): Promise<GraphBuildRun> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/evidence-graph/synchronize`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to synchronize evidence graph' }));
+    throw new Error(err.detail || 'Failed to synchronize evidence graph');
+  }
+  return res.json();
+}
+
+export async function getEvidenceGraph(
+  requestId: string,
+  nodeType?: string,
+  paperId?: string
+): Promise<EvidenceGraphData> {
+  const params = new URLSearchParams();
+  if (nodeType) params.append('node_type', nodeType);
+  if (paperId) params.append('paper_id', paperId);
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/evidence-graph?${params.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch evidence graph');
+  return res.json();
+}
+
+export async function getGraphStatistics(requestId: string): Promise<GraphStatistics> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/evidence-graph/statistics`);
+  if (!res.ok) throw new Error('Failed to fetch graph statistics');
+  return res.json();
+}
+
+export async function getGraphValidation(requestId: string): Promise<GraphValidationRecord> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/evidence-graph/validation`);
+  if (!res.ok) throw new Error('Failed to fetch graph validation report');
+  return res.json();
+}
+
+export async function getGraphBuildHistory(requestId: string): Promise<GraphBuildRun[]> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/evidence-graph/build-history`);
+  if (!res.ok) throw new Error('Failed to fetch graph build history');
+  return res.json();
+}
+
+export async function getClaimProvenance(claimId: string): Promise<ProvenanceChain> {
+  const res = await fetch(`${API_BASE}/evidence-graph/claims/${claimId}/provenance`);
+  if (!res.ok) throw new Error('Failed to fetch claim provenance trace');
+  return res.json();
+}
+
