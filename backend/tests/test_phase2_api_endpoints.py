@@ -110,3 +110,75 @@ def test_screening_and_evidence_api_workflow():
     res_up = client.put(f"/api/evidence/passages/{passage_id}", json=update_payload)
     assert res_up.status_code == 200
     assert res_up.json()["verification_status"] == "user_verified"
+
+
+def test_pdf_upload_endpoint():
+    import uuid
+    from backend.tests.test_pdf_processing import create_synthetic_scientific_pdf
+
+    p_id = f"upload-p-{uuid.uuid4().hex[:8]}"
+    db = TestingSessionLocal()
+    try:
+        req = ResearchRequest(topic="AI", objective="Explainable models", domain="CS", start_year=2020, end_year=2024)
+        db.add(req)
+        db.commit()
+
+        paper = Paper(
+            id=p_id,
+            request_id=req.id,
+            title="Synthetic PDF Paper for Upload Test",
+            normalized_title="synthetic pdf paper for upload test",
+            publication_year=2023,
+        )
+        db.add(paper)
+        db.commit()
+    finally:
+        db.close()
+
+    pdf_bytes = create_synthetic_scientific_pdf()
+    files = {"file": ("paper.pdf", pdf_bytes, "application/pdf")}
+    res = client.post(f"/api/papers/{p_id}/upload-pdf", files=files)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["success"] is True
+    assert data["paper_id"] == p_id
+    assert data["page_count"] == 2
+    assert data["extraction_status"] == "success"
+
+    # Verify document-status endpoint reflects the uploaded document
+    res_status = client.get(f"/api/papers/{p_id}/document-status")
+    assert res_status.status_code == 200
+    status_data = res_status.json()
+    assert status_data["has_document"] is True
+    assert status_data["page_count"] == 2
+    assert len(status_data["section_headings"]) >= 2
+
+
+@pytest.mark.asyncio
+async def test_phase2_mcp_tools():
+    from backend.app.services.mcp.tools import tool_screen_paper_content, tool_extract_paper_evidence
+
+    # 1. Test MCP screening tool
+    screen_res = tool_screen_paper_content(
+        title="Towards Explainable Misinformation Detection using SHAP",
+        abstract="We present an explainable AI framework for detecting misinformation using SHAP.",
+        topic="Explainable AI for Misinformation Detection",
+        objective="Analyze explanation mechanisms in misinformation detection",
+        start_year=2020,
+        end_year=2026,
+        publication_year=2023,
+    )
+    assert screen_res["decision"] == "included"
+    assert screen_res["confidence_score"] >= 0.70
+
+    # 2. Test MCP evidence extraction tool
+    ext_res = await tool_extract_paper_evidence(
+        paper_id="mcp-test-1",
+        title="Towards Explainable Misinformation Detection using SHAP",
+        abstract="In this paper we propose an explainable framework on the LIAR dataset. It achieves an accuracy of 91.2%.",
+        raw_text=None,
+    )
+    assert ext_res["paper_id"] == "mcp-test-1"
+    assert any("LIAR" in d["dataset_name"] for d in ext_res["datasets"])
+    assert any(m["metric_name"] == "Accuracy" for m in ext_res["evaluation_metrics"])
+

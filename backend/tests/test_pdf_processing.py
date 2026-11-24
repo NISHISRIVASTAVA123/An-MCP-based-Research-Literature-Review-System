@@ -1,7 +1,10 @@
 """Unit Tests for Scientific PDF Processing and Layout Extraction."""
 
 import pytest
-import fitz
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz
 from backend.app.services.document.pdf_processor import ScientificPdfProcessor
 
 
@@ -70,4 +73,19 @@ def test_pdf_processor_corrupt_bytes_rejected():
     assert result["status"] == "corrupt_unreadable"
     assert result["page_count"] == 0
     assert result["error"] is not None
+
+
+def test_pdf_processor_partial_text_density():
+    processor = ScientificPdfProcessor()
+    doc = fitz.open()
+    page = doc.new_page()
+    page.insert_text((50, 72), "Abstract\nA brief note on machine learning algorithms in scientific literature.", fontsize=11)
+    pdf_bytes = doc.tobytes()
+    doc.close()
+
+    result = processor.process_pdf(pdf_bytes)
+    assert result["status"] == "partial"
+    assert result["page_count"] == 1
+    assert 50 <= result["total_characters"] < 500
+
 

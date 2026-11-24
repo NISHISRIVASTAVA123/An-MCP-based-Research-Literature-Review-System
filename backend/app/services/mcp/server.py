@@ -15,6 +15,18 @@ from backend.app.services.mcp.tools import (
     tool_generate_search_strategy,
     tool_screen_paper_content,
     tool_extract_paper_evidence,
+    tool_build_evidence_graph,
+    tool_synchronize_evidence_graph,
+    tool_get_graph_statistics,
+    tool_query_papers_by_method,
+    tool_query_papers_by_dataset,
+    tool_query_papers_by_model,
+    tool_get_paper_evidence_graph,
+    tool_get_claim_evidence,
+    tool_get_evidence_provenance,
+    tool_get_graph_validation_report,
+    tool_find_shared_methods,
+    tool_find_shared_datasets,
 )
 
 # Initialize MCP server
@@ -169,6 +181,82 @@ async def extract_paper_evidence(
         raw_text: Optional full-text extracted paper content.
     """
     return await tool_extract_paper_evidence(paper_id, title, abstract, raw_text)
+
+
+# ---------------------------------------------------------
+# Phase 3: Evidence Graph MCP Tools
+# ---------------------------------------------------------
+
+@mcp_server.tool()
+def build_evidence_graph(request_id: str) -> Dict[str, Any]:
+    """Constructs knowledge graph for a research request from Phase 2 evidence (Phase 3)."""
+    return tool_build_evidence_graph(request_id)
+
+
+@mcp_server.tool()
+def synchronize_evidence_graph(request_id: str) -> Dict[str, Any]:
+    """Idempotently synchronizes newly extracted evidence into the graph (Phase 3)."""
+    return tool_synchronize_evidence_graph(request_id)
+
+
+@mcp_server.tool()
+def get_graph_statistics(request_id: str) -> Dict[str, Any]:
+    """Retrieves real-time counts and verification stats of the evidence graph (Phase 3)."""
+    return tool_get_graph_statistics(request_id)
+
+
+@mcp_server.tool()
+def query_papers_by_method(request_id: str, method_name: str) -> List[Dict[str, Any]]:
+    """Finds all papers utilizing a particular methodology (Phase 3)."""
+    return tool_query_papers_by_method(request_id, method_name)
+
+
+@mcp_server.tool()
+def query_papers_by_dataset(request_id: str, dataset_name: str) -> List[Dict[str, Any]]:
+    """Finds all papers evaluated on a benchmark dataset (Phase 3)."""
+    return tool_query_papers_by_dataset(request_id, dataset_name)
+
+
+@mcp_server.tool()
+def query_papers_by_model(request_id: str, model_name: str) -> List[Dict[str, Any]]:
+    """Finds all papers using a specific model architecture (Phase 3)."""
+    return tool_query_papers_by_model(request_id, model_name)
+
+
+@mcp_server.tool()
+def get_paper_evidence_graph(paper_id: str) -> Dict[str, Any]:
+    """Retrieves the connected neighborhood for a research paper (Phase 3)."""
+    return tool_get_paper_evidence_graph(paper_id)
+
+
+@mcp_server.tool()
+def get_claim_evidence(claim_id: str) -> List[Dict[str, Any]]:
+    """Retrieves exact evidence passages supporting a claim (Phase 3)."""
+    return tool_get_claim_evidence(claim_id)
+
+
+@mcp_server.tool()
+def get_evidence_provenance(claim_id: str) -> Dict[str, Any]:
+    """Retrieves full provenance chain for a claim (Phase 3)."""
+    return tool_get_evidence_provenance(claim_id)
+
+
+@mcp_server.tool()
+def get_graph_validation_report(request_id: str) -> Dict[str, Any]:
+    """Audits graph integrity and provenance consistency (Phase 3)."""
+    return tool_get_graph_validation_report(request_id)
+
+
+@mcp_server.tool()
+def find_shared_methods(paper_id_a: str, paper_id_b: str) -> List[str]:
+    """Identifies methods used by both papers (Phase 3)."""
+    return tool_find_shared_methods(paper_id_a, paper_id_b)
+
+
+@mcp_server.tool()
+def find_shared_datasets(paper_id_a: str, paper_id_b: str) -> List[str]:
+    """Identifies datasets evaluated in both papers (Phase 3)."""
+    return tool_find_shared_datasets(paper_id_a, paper_id_b)
 
 
 if __name__ == "__main__":

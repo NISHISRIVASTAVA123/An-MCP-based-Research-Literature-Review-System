@@ -16,6 +16,18 @@ from backend.app.models.paper import Paper
 from backend.app.models.research_request import ResearchRequest
 
 
+def _stem(w: str) -> str:
+    if w.endswith("ies") and len(w) > 4:
+        return w[:-3] + "y"
+    if w.endswith("es") and len(w) > 4:
+        return w[:-2]
+    if w.endswith("s") and not w.endswith("ss") and len(w) > 3:
+        return w[:-1]
+    if w.endswith("ed") and len(w) > 4:
+        return w[:-2]
+    return w
+
+
 def _normalize_tokens(text: str) -> set:
     if not text:
         return set()
@@ -29,7 +41,7 @@ def _normalize_tokens(text: str) -> set:
         "no", "nor", "not", "only", "own", "same", "so", "than", "too", "very", "can",
         "will", "just", "don", "should", "now", "approach", "study", "paper", "presents",
     }
-    return {w for w in cleaned.split() if len(w) > 2 and w not in stop_words}
+    return {_stem(w) for w in cleaned.split() if len(w) > 2 and w not in stop_words}
 
 
 class ScreeningCriteriaEvaluator:
@@ -167,6 +179,8 @@ class ScreeningCriteriaEvaluator:
                 inc_tokens = _normalize_tokens(inc)
                 if bool(inc_tokens.intersection(paper_tokens)):
                     matched_inc += 1
+                elif "peer" in inc_tokens and paper.publication_type in ("journal-article", "proceedings-article"):
+                    matched_inc += 1
             if matched_inc == 0 and len(request.inclusion_criteria) > 0:
                 inclusion_satisfied = False
 
@@ -174,6 +188,15 @@ class ScreeningCriteriaEvaluator:
             criteria_satisfied.append("inclusion_criteria")
         else:
             criteria_unsatisfied.append("inclusion_criteria")
+            return (
+                "excluded",
+                f"Paper does not satisfy mandatory user inclusion criteria: {', '.join(request.inclusion_criteria)}.",
+                criteria_evaluated,
+                criteria_satisfied,
+                criteria_unsatisfied,
+                missing_info,
+                0.75,
+            )
 
         # Decision synthesis
         if topic_match_ratio >= 0.40 or len(title_overlap) >= 2:

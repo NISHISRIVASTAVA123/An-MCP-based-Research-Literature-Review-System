@@ -204,3 +204,60 @@ def test_screening_service_batch_and_human_override():
         assert updated.original_decision == "excluded"
     finally:
         db.close()
+
+
+def test_publication_type_incompatibility_excluded():
+    evaluator = ScreeningCriteriaEvaluator()
+    req = ResearchRequest(
+        id="test-req-pubtype",
+        topic="Explainable AI for Fake News Detection",
+        objective="Explainable misinformation models",
+        domain="Artificial Intelligence",
+        start_year=2018,
+        end_year=2026,
+        publication_types=["journal-article", "proceedings-article"],
+    )
+    paper = Paper(
+        id="paper-pubtype",
+        request_id="test-req-pubtype",
+        title="Explainable Fake News Detection Approaches",
+        normalized_title="explainable fake news detection approaches",
+        authors=["Alice Smith"],
+        abstract="We present an explainable AI framework for detecting fake news using SHAP.",
+        publication_year=2022,
+        publication_type="preprint",  # Not in allowed list
+        keywords=["fake news"],
+    )
+
+    decision, reason, evaluated, satisfied, unsatisfied, missing, conf = evaluator.evaluate_paper(paper, req)
+    assert decision == "excluded"
+    assert "publication_type" in unsatisfied
+
+
+def test_user_inclusion_criteria_required():
+    evaluator = ScreeningCriteriaEvaluator()
+    req = ResearchRequest(
+        id="test-req-inc",
+        topic="Explainable AI for Fake News Detection",
+        objective="Explainable misinformation models",
+        domain="Artificial Intelligence",
+        start_year=2018,
+        end_year=2026,
+        inclusion_criteria=["Empirical evaluation on benchmark datasets"],
+    )
+    # Paper without empirical benchmark mentioned
+    paper = Paper(
+        id="paper-inc",
+        request_id="test-req-inc",
+        title="Theoretical Foundations of Explainable AI in Misinformation",
+        normalized_title="theoretical foundations of explainable ai in misinformation",
+        authors=["Alice Smith"],
+        abstract="A theoretical discussion on why explainable AI is important for fake news.",
+        publication_year=2022,
+        keywords=["fake news"],
+    )
+
+    decision, reason, evaluated, satisfied, unsatisfied, missing, conf = evaluator.evaluate_paper(paper, req)
+    assert decision == "excluded"
+    assert "inclusion_criteria" in unsatisfied
+

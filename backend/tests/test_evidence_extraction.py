@@ -110,3 +110,60 @@ async def test_extraction_service_database_persistence():
         assert updated.user_notes is not None
     finally:
         db.close()
+
+
+@pytest.mark.asyncio
+async def test_zero_fabrication_on_minimal_text():
+    extractor = RuleBasedEvidenceExtractor()
+    title = "A Philosophical Overview of Truth"
+    abstract = "We contemplate the nature of truth in modern epistemology."
+
+    res = await extractor.extract_evidence(
+        paper_id="test-p-zero",
+        title=title,
+        abstract=abstract,
+        fulltext_sections=[],
+        source_scope="abstract_only",
+    )
+
+    # Strictly zero-fabrication: No unmentioned datasets or evaluation metrics
+    assert len(res.datasets) == 0
+    assert len(res.evaluation_metrics) == 0
+    assert len(res.limitations) == 0
+
+
+@pytest.mark.asyncio
+async def test_fulltext_sections_page_and_heading_attribution():
+    extractor = RuleBasedEvidenceExtractor()
+    sections = [
+        {
+            "page_number": 3,
+            "heading": "3. Methodology",
+            "text": "We evaluate a Transformer and BERT architecture on the benchmark dataset.",
+        },
+        {
+            "page_number": 5,
+            "heading": "5. Experimental Results",
+            "text": "The model achieved an accuracy of 94.2% on the FakeNewsNet dataset.",
+        },
+        {
+            "page_number": 7,
+            "heading": "7. Limitations",
+            "text": "However, our study is restricted to English language posts.",
+        },
+    ]
+
+    res = await extractor.extract_evidence(
+        paper_id="test-p-fulltext",
+        title="Deep Transformer Architectures for Misinformation",
+        abstract=None,
+        fulltext_sections=sections,
+        source_scope="full_text",
+    )
+
+    assert res.source_scope == "full_text"
+    assert any("FakeNewsNet" in d.dataset_name for d in res.datasets)
+    assert any(m.reported_value == "94.2%" for m in res.evaluation_metrics)
+    assert len(res.limitations) >= 1
+    assert "restricted to english" in res.limitations[0].limitation_text.lower()
+

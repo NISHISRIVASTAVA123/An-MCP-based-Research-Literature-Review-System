@@ -71,6 +71,119 @@ def list_mcp_tools():
                     "preferred_databases": "list of strings (optional)",
                 },
             },
+            {
+                "name": "screen_research_paper",
+                "description": "Evaluates paper eligibility against research scope and criteria (Phase 2)",
+                "parameters": {
+                    "title": "string (required)",
+                    "abstract": "string (required)",
+                    "topic": "string (required)",
+                    "objective": "string (required)",
+                    "start_year": "integer (required)",
+                    "end_year": "integer (required)",
+                    "publication_year": "integer (optional)",
+                },
+            },
+            {
+                "name": "extract_paper_evidence",
+                "description": "Extracts structured research objectives, methodologies, datasets, findings, and limitations (Phase 2)",
+                "parameters": {
+                    "paper_id": "string (required)",
+                    "title": "string (required)",
+                    "abstract": "string (optional)",
+                    "raw_text": "string (optional)",
+                },
+            },
+            {
+                "name": "build_evidence_graph",
+                "description": "Constructs knowledge graph for a research request from Phase 2 evidence (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "synchronize_evidence_graph",
+                "description": "Idempotently synchronizes newly extracted evidence into the graph (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_graph_statistics",
+                "description": "Retrieves real-time counts and verification stats of the evidence graph (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "query_papers_by_method",
+                "description": "Finds all papers utilizing a particular methodology (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "method_name": "string (required)",
+                },
+            },
+            {
+                "name": "query_papers_by_dataset",
+                "description": "Finds all papers evaluated on a benchmark dataset (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "dataset_name": "string (required)",
+                },
+            },
+            {
+                "name": "query_papers_by_model",
+                "description": "Finds all papers using a specific model architecture (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "model_name": "string (required)",
+                },
+            },
+            {
+                "name": "get_paper_evidence_graph",
+                "description": "Retrieves the connected neighborhood for a research paper (Phase 3)",
+                "parameters": {
+                    "paper_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_claim_evidence",
+                "description": "Retrieves exact evidence passages supporting a claim (Phase 3)",
+                "parameters": {
+                    "claim_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_evidence_provenance",
+                "description": "Retrieves full provenance chain for a claim (Phase 3)",
+                "parameters": {
+                    "claim_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_graph_validation_report",
+                "description": "Audits graph integrity and provenance consistency (Phase 3)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "find_shared_methods",
+                "description": "Identifies methods used by both papers (Phase 3)",
+                "parameters": {
+                    "paper_id_a": "string (required)",
+                    "paper_id_b": "string (required)",
+                },
+            },
+            {
+                "name": "find_shared_datasets",
+                "description": "Identifies datasets evaluated in both papers (Phase 3)",
+                "parameters": {
+                    "paper_id_a": "string (required)",
+                    "paper_id_b": "string (required)",
+                },
+            },
+
         ],
     }
 

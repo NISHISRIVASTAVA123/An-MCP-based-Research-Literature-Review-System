@@ -2,7 +2,7 @@
 
 > **Academic Capstone Research Project** | B.Tech Computer Science (Team of 3)  
 > **12-Week Roadmap Target**: Autonomous Evidence Graph & Counterevidence Gap Verification System  
-> **Current Status**: **Phase 1 & Phase 2 Complete (Retrieval, Screening & Structured Evidence Extraction)**
+> **Current Status**: **Phase 1, Phase 2, & Phase 3 Complete (Retrieval, Screening, Evidence Extraction & Evidence Graph Construction)**
 
 ---
 
@@ -18,7 +18,7 @@ This application investigates the following central research hypothesis:
 |---|---|---|
 | **Phase 1** | **Research input, search strategy & academic literature retrieval** | 🟢 **COMPLETED** |
 | **Phase 2** | **Paper screening and structured evidence extraction** | 🟢 **COMPLETED** |
-| Phase 3 | Structured evidence database & evidence graph construction | ⚪ Queued |
+| **Phase 3** | **Structured evidence database & evidence graph construction** | 🟢 **COMPLETED** |
 | Phase 4 | Literature synthesis & baseline research-gap generation | ⚪ Queued |
 | Phase 5 | Explicit counterevidence retrieval | ⚪ Queued |
 | Phase 6 | Evidence-graph-based claim verification | ⚪ Queued |
@@ -28,7 +28,7 @@ This application investigates the following central research hypothesis:
 
 ---
 
-## 2. Features Delivered (Phases 1 & 2)
+## 2. Features Delivered Across Phases
 
 ### Phase 1: Literature Retrieval & Corpus Management
 - **Research Input Interface**: Academic request form accepting topic, objective, dynamic research questions, scientific domain, publication timeframe, citation format, inclusion/exclusion criteria, and database targets with full validation.
@@ -46,6 +46,16 @@ This application investigates the following central research hypothesis:
 - **Verifiable Passage Tracking**: Source anchoring mapping every extracted scientific claim to a verbatim text passage, page number, and section heading with researcher verification workflow.
 - **Model Context Protocol (MCP) Tools**: Native `screen_research_paper` and `extract_paper_evidence` tools.
 - **Interactive UI**: Screening dashboard with real-time KPI metrics, criteria inspection, PDF upload, override controls, and tabbed evidence explorer.
+
+### Phase 3: Evidence Database & Evidence Graph Construction
+- **Semantic Graph Data Model**: 14 strictly typed node entities (`PAPER`, `AUTHOR`, `RESEARCH_QUESTION`, `RESEARCH_OBJECTIVE`, `METHOD`, `MODEL`, `DATASET`, `METRIC`, `FINDING`, `CLAIM`, `LIMITATION`, `FUTURE_DIRECTION`, `EVIDENCE_PASSAGE`, `RESEARCH_REQUEST`) and typed directional relationships (`AUTHORED_BY`, `USES_METHOD`, `USES_MODEL`, `EVALUATED_ON`, `REPORTS_FINDING`, `REPORTS_LIMITATION`, `SUPPORTS`, `ADDRESSES_QUESTION`, etc.).
+- **Hybrid Relational Graph Storage**: Indexed SQL tables (`graph_nodes`, `graph_edges`) delivering ACID compliance, sub-millisecond graph queries, and zero-daemon deployment portability.
+- **Conservative Entity Normalization**: Normalization engine with curated domain dictionaries (Methods, Models, Metrics, Datasets), space/hyphen/case-insensitive matching, and human override registry.
+- **Idempotent 14-Step Graph Construction Pipeline**: Pipeline that strictly enforces Phase 2 screening gatekeeping (omitting excluded papers), creates cross-paper shared entities, and establishes bidirectional `SUPPORTS` grounding between claims/findings and verbatim evidence passages.
+- **Graph Integrity Validation Service**: Automated audits reporting Claim-to-Evidence Grounding Rate, orphan nodes, and unverified aliases with structured `PASS`/`WARNING`/`FAIL` metrics.
+- **14 Predefined Safe Queries & Provenance Tracing**: Complete API and service queries including multi-paper claim consensus, solitary claims, cross-paper dataset evaluations, and end-to-end claim provenance traversal (`Claim -> Evidence Passage -> Paper -> Section -> Page`).
+- **Interactive SVG Visual Graph Interface**: React 19 visual canvas with force-directed physics, zoom/pan controls, dynamic node-type color coding, connected-component clustering, node inspection drawer, live claim provenance modal, and graph build trigger modal.
+- **12 Phase 3 Model Context Protocol (MCP) Tools**: Total 20 autonomous tools exposed to agentic frameworks (Claude Desktop, Antigravity, LLM agents).
 
 ---
 
@@ -79,16 +89,23 @@ Open **http://localhost:5173** (API calls are automatically proxied to port 8000
 
 ---
 
-## 4. Running the Tests
+## 4. Running the Tests & Live Verifications
 
 ### 4.1 Automated Test Suite
 ```powershell
 $env:PYTHONPATH="."
 python -m pytest backend/tests -v
 ```
-*Executes all 35 automated test cases across research input, query generation, deduplication, mocked providers, PDF layout parsing, rule-based evidence extraction, and Phase 2 API endpoints.*
+*Executes all 53 automated test cases covering research input, query generation, deduplication, mocked academic providers, PDF layout parsing, rule-based evidence extraction, entity normalization, 14-step graph construction, graph queries, and Phase 1-3 REST API endpoints.*
 
-### 4.2 Frontend Production Build
+### 4.2 Phase 3 Live End-to-End Verification Script
+```powershell
+$env:PYTHONPATH="."
+python backend/scripts/phase3_live_test.py
+```
+*Simulates a complete real-world workflow from request creation, paper screening, multi-dimensional evidence extraction, graph construction, graph integrity validation, 14 query types, to claim provenance traversal.*
+
+### 4.3 Frontend Production Build
 ```powershell
 cd frontend
 npm run build
@@ -115,12 +132,45 @@ The server provides a native Model Context Protocol (MCP) server compatible with
 }
 ```
 
-### Available Tools:
+### Available Tools (20 Total):
+
+#### Phase 1: Retrieval & Strategy
 1. `search_openalex`: Query OpenAlex for scientific works.
 2. `search_semantic_scholar`: Query Semantic Scholar Graph API.
 3. `search_crossref`: Query Crossref for works and DOI metadata.
 4. `search_arxiv`: Query arXiv for preprints.
 5. `retrieve_paper_by_doi`: Resolve DOI to canonical paper metadata.
 6. `generate_academic_search_strategy`: Decompose research topic into boolean search queries.
+
+#### Phase 2: Screening & Extraction
 7. `screen_research_paper`: Screen a paper against research scope and criteria.
 8. `extract_paper_evidence`: Extract structured findings, metrics, limitations, and verbatim passages.
+
+#### Phase 3: Evidence Graph & Normalization
+9. `build_evidence_graph`: Execute the 14-step idempotent pipeline to build the knowledge graph from screened literature.
+10. `validate_evidence_graph`: Audit graph integrity, checking claim evidence grounding, orphan nodes, and unverified aliases.
+11. `get_graph_statistics`: Return total counts of nodes and edges by semantic type.
+12. `query_evidence_graph`: Run any of the 14 predefined safe graph queries (method usage, dataset evaluation, findings, limitations).
+13. `trace_claim_provenance`: Deep traversal mapping a claim ID to its backing evidence passages, source papers, sections, and pages.
+14. `find_papers_by_method`: Retrieve all papers employing a specific research methodology.
+15. `find_papers_by_dataset`: Retrieve all papers evaluated on a specific benchmark or dataset.
+16. `find_claims_supported_by_multiple_papers`: Identify consensus scientific claims supported by 2+ distinct papers.
+17. `find_solitary_claims`: Identify single-paper claims that may represent research gaps or unverified findings.
+18. `find_unreviewed_evidence`: Locate extracted evidence records pending researcher review.
+19. `resolve_entity_alias`: Normalize a raw entity name (method, model, dataset, metric) to its canonical standard representation.
+20. `add_entity_alias_override`: Register a human expert normalization override.
+
+---
+
+## 6. Phase Documentation Suite
+
+Comprehensive architecture specifications, schemas, and API guides are available in the `docs/` directory:
+
+- [Project Progress Tracker](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/project_progress_tracker.md) - Living status of 12-week roadmap milestones
+- [Phase 3 Implementation Report](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/phase3_implementation.md) - Architectural overview and test verification log
+- [Evidence Graph Schema Specification](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/evidence_graph_schema.md) - Detailed 14 node types and relationship definitions
+- [Entity Normalization Guide](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/entity_normalization.md) - Normalization rules, dictionary catalog, and human override registry
+- [Graph Construction Pipeline](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/graph_construction_pipeline.md) - 14-step idempotent pipeline and screening gatekeeping
+- [Evidence Provenance Model](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/evidence_provenance.md) - Verifiable passage tracking and provenance chain traversal
+- [Graph Query Reference](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/graph_query_reference.md) - Reference for the 14 safe predefined graph queries
+- [Phase 3 REST API Reference](file:///d:/projects/An-MCP-based-Research-Literature-Review-System/docs/phase3_api_documentation.md) - Swagger/REST endpoint specifications and payload schemas

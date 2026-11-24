@@ -130,8 +130,9 @@ Phase 2 non-destructively added the following tables with cascading foreign keys
 
 ## 4. Verification & Automated Test Coverage
 
-The test suite contains 35 passing tests spanning unit, service, parser, and API integration levels:
-- `backend/tests/test_screening.py`: 6 tests validating criteria matching, stage evaluation, and decision persistence.
-- `backend/tests/test_pdf_processing.py`: 5 tests verifying PyMuPDF layout parsing, section demarcation, and corrupt byte handling.
-- `backend/tests/test_evidence_extraction.py`: 12 tests verifying rule-based extraction, zero-fabrication constraints, source scope labeling, and passage linkage.
-- `backend/tests/test_phase2_api_endpoints.py`: 12 end-to-end API route tests validating screening execution, human overrides, document retrieval, PDF upload, evidence extraction, and passage verification.
+The test suite contains 42 passing tests spanning unit, service, parser, MCP tools, and API integration levels with 0 errors (including 18 dedicated Phase 2 tests and 24 Phase 1 regression tests):
+- `backend/tests/test_screening.py`: 8 tests validating criteria matching, timeframe boundaries, publication types, user inclusion/exclusion rules, stage evaluation, and decision persistence.
+- `backend/tests/test_pdf_processing.py`: 3 tests verifying PyMuPDF layout parsing, section demarcation, partial text density, and corrupt byte rejection.
+- `backend/tests/test_evidence_extraction.py`: 4 tests verifying rule-based extraction, zero-fabrication constraints, source scope labeling (full-text vs abstract-only), passage linkage, and user verification workflows.
+- `backend/tests/test_phase2_api_endpoints.py`: 3 comprehensive integration tests validating end-to-end API routes (screening execution, human overrides, document retrieval, evidence extraction, passage verification), user PDF file uploads (`/api/papers/{id}/upload-pdf`), and native Model Context Protocol (MCP) screening and evidence tools.
+- `backend/scripts/phase2_live_test.py`: Standalone live pipeline verification script executing screening, human overrides, structured evidence extraction, and passage persistence.

@@ -8,6 +8,13 @@ from backend.app.models.search_execution import SearchExecution
 from backend.app.models.screening import ScreeningRun, ScreeningDecision
 from backend.app.models.document import FulltextDocument
 from backend.app.models.evidence import ExtractionRun, EvidenceRecord, EvidencePassage
+from backend.app.models.graph import (
+    GraphNode,
+    GraphEdge,
+    EntityAlias,
+    GraphBuildRun,
+    GraphValidationRecord,
+)
 
 __all__ = [
     "Base",
@@ -24,4 +31,9 @@ __all__ = [
     "ExtractionRun",
     "EvidenceRecord",
     "EvidencePassage",
+    "GraphNode",
+    "GraphEdge",
+    "EntityAlias",
+    "GraphBuildRun",
+    "GraphValidationRecord",
 ]

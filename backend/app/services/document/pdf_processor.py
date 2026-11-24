@@ -7,7 +7,10 @@ and isolating reference sections.
 
 import re
 from typing import Dict, Any, List, Tuple, Optional
-import fitz  # PyMuPDF
+try:
+    import pymupdf as fitz
+except ImportError:
+    import fitz  # PyMuPDF fallback
 from backend.app.core.logging import logger
 
 COMMON_SECTIONS = [

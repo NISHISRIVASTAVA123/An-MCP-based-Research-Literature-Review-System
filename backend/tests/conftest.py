@@ -35,8 +35,10 @@ def override_get_db():
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database_tables():
     """Initializes tables in test database once per session."""
+    Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
     yield
+    test_engine.dispose()
     # Cleanup after entire test session
     try:
         if os.path.exists(TEST_DB_PATH):

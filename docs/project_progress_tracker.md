@@ -14,7 +14,7 @@
 |---|---|---|---|---|
 | **Phase 1** | **Research input, search strategy, and academic literature retrieval** | **Weeks 1–2** | 🟢 **COMPLETED** | **12 / 12 Subtasks Done (100%)** |
 | **Phase 2** | **Paper screening and structured evidence extraction** | **Weeks 3–4** | 🟢 **COMPLETED** | **7 / 7 Modules Done (100%)** |
-| Phase 3 | Evidence database and evidence graph construction | Weeks 5–6 | ⚪ Queued | 0 / 5 Modules |
+| **Phase 3** | **Evidence database and evidence graph construction** | **Weeks 5–6** | 🟢 **COMPLETED** | **6 / 6 Modules Done (100%)** |
 | Phase 4 | Literature synthesis and baseline research-gap generation | Week 7 | ⚪ Queued | 0 / 6 Modules |
 | Phase 5 | Explicit counterevidence retrieval | Week 8 | ⚪ Queued | 0 / 5 Modules |
 | Phase 6 | Evidence-graph-based claim verification | Week 9 | ⚪ Queued | 0 / 5 Modules |
@@ -35,55 +35,63 @@
 
 ---
 
-## 3. Phase 2 Implementation Checklist (Completed)
-
-```
-[ Phase 2 Progress: 7 / 7 Modules Completed - 100% ]
-```
-
-- [x] **Module A: Automated Paper Screening & Criteria Evaluator**:
-  - 7-dimension criteria evaluation: Topic match, objective/RQ alignment, year window, publication type, methodology presence, empirical outcome presence, explicit inclusion/exclusion rules.
-  - Multi-stage screening (`title_abstract` -> `full_text` -> `manual_override`).
-  - Decisions categorized as `included`, `excluded`, or `needs_human_review` with confidence scoring and missing-information tracking.
-  - Non-destructive human override mechanism with reviewer notes, timestamps, and preserved original decisions.
-- [x] **Module B: Legal Open-Access Retrieval & Scientific PDF Processing**:
-  - Direct arXiv PDF fetching and OpenAlex open-access resolution.
-  - File magic-byte validation (`%PDF-`) and SHA-256 integrity digest computation.
-  - User PDF file upload endpoint and storage under `data/fulltext_documents/`.
-  - PyMuPDF (`fitz`) scientific document processing with regex-based section demarcation (Abstract, Intro, Related Work, Method, Experiments, Results, Discussion, Limitations, Conclusion, References).
-  - Reference section boundary isolation and text-density quality scoring (`is_scanned_ocr`).
-- [x] **Module C: Structured Scientific Evidence Extraction**:
-  - Zero-fabrication principle: No hallucinated metrics, strict distinction between `full_text` and `abstract_only`.
-  - Author-reported vs system-inferred limitation classification.
-  - Pluggable extraction backends: Rule-based linguistic/regex extractor, mock extractor for fixtures, LLM extractor with prompt-injection defense.
-  - Deep scientific schema: Research objective, methodology components, datasets, evaluation metrics, findings, limitations, future work, contributions, and epistemic uncertainties.
-- [x] **Module D: Verifiable Passage Tracking**:
-  - Relational passage anchoring linking extracted claims to verbatim text, page number, and section heading.
-  - Passage verification workflow: `machine_extracted`, `user_verified`, `flagged_incorrect`, `unsupported_needs_review`.
-- [x] **Module E: Relational Database Storage**:
-  - SQLite schema extensions: `screening_runs`, `screening_decisions`, `fulltext_documents`, `extraction_runs`, `evidence_records`, `evidence_passages`.
-  - Repository layer with transactional integrity.
-- [x] **Module F: MCP Tools Exposure**:
-  - `screen_research_paper` and `extract_paper_evidence` tools registered on `MCPServer`.
-- [x] **Module G: Frontend Screening & Evidence Dashboard**:
-  - Phase 2 active indicator on 12-week roadmap sidebar.
-  - Screening view with real-time KPI metrics, filter pills, paper cards with criteria evaluation breakdown.
-  - Human override controls with reason prompt.
-  - Full-text download & PDF upload actions.
-  - Evidence inspection modal with tabbed views, verbatim passage highlighting, and passage verification controls.
-- [x] **Module H: Automated Tests & Documentation**:
-  - 35/35 pytest tests passing with 0 errors (`backend/tests/`).
-  - Frontend production build 100% clean (`tsc && vite build`).
-  - Complete documentation: `phase2_implementation.md`, `screening_methodology.md`, `evidence_extraction_schema.md`, `pdf_processing.md`, `phase2_api_documentation.md`.
+## 3. Phase 2 Implementation Summary (Completed)
+- **2.1 Automated Paper Screening**: 7-dimension criteria evaluation, multi-stage screening (`title_abstract` -> `full_text` -> `manual_override`), confidence scoring, missing-information tracking, human override mechanism.
+- **2.2 PDF Processing & Section Extraction**: arXiv download, open-access resolution, SHA-256 digests, PyMuPDF scientific section demarcation.
+- **2.3 Structured Evidence Extraction**: Rule-based extractor, mock extractor, LLM extractor, author-reported vs system-inferred limitation classification.
+- **2.4 Verifiable Passage Tracking**: Character offset and page/section anchoring.
+- **2.5 Relational Storage**: `screening_runs`, `screening_decisions`, `fulltext_documents`, `extraction_runs`, `evidence_records`, `evidence_passages`.
 
 ---
 
-## 4. Next Phase: Phase 3 Scope & Roadmap
-**Phase 3: Evidence Database and Evidence Graph Construction**
-*Deliverables planned for Phase 3 (to begin only after user authorization):*
-1. Structured evidence graph database schema.
-2. Nodes: Papers, Objectives, Methods, Datasets, Metrics, Findings, Limitations, Passages.
-3. Edges: `uses_method`, `evaluated_on`, `claims_finding`, `identifies_limitation`, `supported_by_passage`, `cites`.
-4. Graph construction service and deduplication of entities (e.g., standardizing dataset and model names).
-5. Interactive graph visualization in the frontend.
-6. Traceability queries from claims to source papers.
+## 4. Phase 3 Implementation Checklist (Completed)
+
+```
+[ Phase 3 Progress: 6 / 6 Modules Completed - 100% ]
+```
+
+- [x] **Module A: Evidence Graph Data Model & Relational Graph Schema**:
+  - 14 semantically typed node entities: `RESEARCH_REQUEST`, `RESEARCH_QUESTION`, `RESEARCH_OBJECTIVE`, `PAPER`, `AUTHOR`, `METHOD`, `MODEL`, `DATASET`, `METRIC`, `FINDING`, `CLAIM`, `LIMITATION`, `FUTURE_DIRECTION`, `EVIDENCE_PASSAGE`.
+  - Directional semantic relationships: `HAS_QUESTION`, `HAS_OBJECTIVE`, `INCLUDES_PAPER`, `AUTHORED_BY`, `USES_METHOD`, `USES_MODEL`, `USES_DATASET`, `EVALUATED_USING`, `REPORTS_FINDING`, `REPORTS_CLAIM`, `REPORTS_LIMITATION`, `PROPOSES_FUTURE_DIRECTION`, `HAS_EVIDENCE`, `SUPPORTS`.
+  - SQLAlchemy models (`GraphNode`, `GraphEdge`, `EntityAlias`, `GraphBuildRun`, `GraphValidationRecord`) with composite uniqueness constraints and high-speed indexing.
+- [x] **Module B: Controlled Entity Normalization & Synonym Resolution Engine**:
+  - Conservative resolution policy to prevent false scientific entity merges.
+  - Curated dictionaries for methods, model families, metrics, and benchmark datasets.
+  - Whitespace, hyphen, underscore, and suffix stemming normalizer.
+  - Unverified alias queue (`entity_aliases`) with confidence scoring.
+  - Manual entity resolution API (`POST /api/evidence-graph/entity-resolution`) with immediate `manual_user_override` propagation.
+- [x] **Module C: Idempotent Graph Construction Pipeline**:
+  - Deterministic 14-step pipeline in `EvidenceGraphBuilder`.
+  - Strict screening exclusion enforcement: non-included papers are strictly omitted from active graph.
+  - Zero-fabrication principle: nodes and edges strictly derived from authenticated Phase 1 & 2 records.
+  - Deterministic natural keys (`entity_key`, `edge_key`) ensuring 0 duplicate entities on rebuilds.
+  - Reproducibility run logging via `GraphBuildRun`.
+- [x] **Module D: Graph Integrity Validation Service**:
+  - Automated post-build audit checking claim evidence grounding rate, orphan nodes, and unverified aliases.
+  - Real-time integrity status: `valid`, `warning`, `error`.
+- [x] **Module E: Semantic Graph Query Engine**:
+  - 14 parameterized, safe query operations in `EvidenceGraphQueryService` (papers by method/dataset/model, findings by paper, cross-paper limitations, passage support, shared methods/datasets, unsupported claims, paper subgraph).
+  - End-to-end claim provenance tracing linking Claim -> Passage -> Paper -> Document -> Run -> Request (`get_claim_provenance_chain`).
+- [x] **Module F: REST API Endpoints & 12 MCP Tools**:
+  - 10 dedicated REST API endpoints under `/api/.../evidence-graph` and `/api/evidence-graph/...`.
+  - 12 Model Context Protocol tools registered on `mcp_server` for autonomous agent reasoning.
+- [x] **Module G: Interactive Evidence Graph Frontend**:
+  - SVG visual canvas with node clustering, zoom/pan, search, entity type filter pills, floating legend, slide-over inspector drawer, and claim provenance modal.
+  - Integrated into step 5 of research workflow and accessible from screening view.
+- [x] **Module H: Automated Tests, Live Verification & Documentation**:
+  - **53 / 53 automated tests passing** across Phase 1, Phase 2, and Phase 3 (`backend/tests/`).
+  - Phase 3 end-to-end live verification script passing with 0 errors (`backend/scripts/phase3_live_test.py`).
+  - Clean frontend production build (`tsc && vite build`) in 4.52s.
+  - Complete documentation suite: `phase3_implementation.md`, `evidence_graph_schema.md`, `entity_normalization.md`, `graph_construction_pipeline.md`, `evidence_provenance.md`, `graph_query_reference.md`, `phase3_api_documentation.md`.
+
+---
+
+## 5. Next Phase: Phase 4 Scope & Roadmap
+**Phase 4: Literature Synthesis and Baseline Research-Gap Generation**
+*Deliverables planned for Phase 4 (to begin only after user authorization):*
+1. Structured synthesis across evidence graph clusters.
+2. Cross-paper method-dataset matrix generation.
+3. Baseline LLM-based research gap generator (for subsequent experimental baseline comparison).
+4. Evidence-supported gap candidate extraction.
+5. Conflict and contradiction identification across findings and limitations.
+6. Literature review synthesis dashboard.

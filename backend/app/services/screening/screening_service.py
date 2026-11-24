@@ -99,3 +99,16 @@ class ScreeningService:
             f"{included_count} included, {excluded_count} excluded, {review_count} needs review."
         )
         return run
+
+    def record_human_override(
+        self,
+        paper_id: str,
+        decision: str,
+        reviewer_notes: str,
+    ) -> Optional[ScreeningDecision]:
+        """Records a non-destructive human reviewer override for a paper's screening decision."""
+        return self.screening_repo.update_human_override(
+            paper_id=paper_id,
+            new_decision=decision,
+            reviewer_notes=reviewer_notes,
+        )

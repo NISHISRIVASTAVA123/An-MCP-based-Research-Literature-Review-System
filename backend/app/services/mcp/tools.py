@@ -167,3 +167,218 @@ async def tool_extract_paper_evidence(
     return res.model_dump()
 
 
+# ---------------------------------------------------------
+# Phase 3: Evidence Graph MCP Tool Implementations
+# ---------------------------------------------------------
+
+def tool_build_evidence_graph(request_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+    """Constructs knowledge graph for a research request from Phase 2 evidence."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_builder import EvidenceGraphBuilder
+    from backend.app.services.graph.graph_validation_service import GraphValidationService
+
+    session = db or SessionLocal()
+    try:
+        builder = EvidenceGraphBuilder(session)
+        run = builder.build_graph(request_id, trigger_type="full_build")
+        val = GraphValidationService(session).validate_graph(request_id, build_run_id=run.id)
+        return {
+            "status": "completed",
+            "run_number": run.run_number,
+            "total_nodes": run.total_nodes,
+            "total_edges": run.total_edges,
+            "nodes_added": run.nodes_added,
+            "edges_added": run.edges_added,
+            "papers_processed": run.papers_processed,
+            "integrity_status": val.integrity_status,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_synchronize_evidence_graph(request_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+    """Idempotently synchronizes newly extracted evidence into the graph."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_builder import EvidenceGraphBuilder
+
+    session = db or SessionLocal()
+    try:
+        builder = EvidenceGraphBuilder(session)
+        run = builder.build_graph(request_id, trigger_type="incremental_sync")
+        return {
+            "status": "synchronized",
+            "run_number": run.run_number,
+            "total_nodes": run.total_nodes,
+            "total_edges": run.total_edges,
+            "nodes_added": run.nodes_added,
+            "nodes_updated": run.nodes_updated,
+            "edges_added": run.edges_added,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_graph_statistics(request_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+    """Retrieves real-time counts and verification stats of the evidence graph."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.graph_repository import GraphRepository
+
+    session = db or SessionLocal()
+    try:
+        repo = GraphRepository(session)
+        nodes = repo.get_nodes_by_request(request_id)
+        edges = repo.get_edges_by_request(request_id)
+        nodes_by_type = {}
+        for n in nodes:
+            nodes_by_type[n.node_type] = nodes_by_type.get(n.node_type, 0) + 1
+        rels_by_type = {}
+        for e in edges:
+            rels_by_type[e.relationship_type] = rels_by_type.get(e.relationship_type, 0) + 1
+        return {
+            "request_id": request_id,
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+            "nodes_by_type": nodes_by_type,
+            "relationships_by_type": rels_by_type,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_query_papers_by_method(request_id: str, method_name: str, db: Optional[Any] = None) -> List[Dict[str, Any]]:
+    """Finds all papers utilizing a particular methodology."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        return EvidenceGraphQueryService(session).find_papers_by_method(request_id, method_name)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_query_papers_by_dataset(request_id: str, dataset_name: str, db: Optional[Any] = None) -> List[Dict[str, Any]]:
+    """Finds all papers evaluated on a benchmark dataset."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        return EvidenceGraphQueryService(session).find_papers_by_dataset(request_id, dataset_name)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_query_papers_by_model(request_id: str, model_name: str, db: Optional[Any] = None) -> List[Dict[str, Any]]:
+    """Finds all papers using a specific model architecture."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        return EvidenceGraphQueryService(session).find_papers_by_model(request_id, model_name)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_paper_evidence_graph(paper_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+    """Retrieves the connected neighborhood for a research paper."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        sub = EvidenceGraphQueryService(session).get_paper_subgraph(paper_id)
+        return {
+            "paper_id": paper_id,
+            "nodes_count": len(sub["nodes"]),
+            "edges_count": len(sub["edges"]),
+            "nodes": [{"id": n.id, "type": n.node_type, "label": n.label} for n in sub["nodes"]],
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_claim_evidence(claim_id: str, db: Optional[Any] = None) -> List[Dict[str, Any]]:
+    """Retrieves exact evidence passages supporting a claim."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        return EvidenceGraphQueryService(session).find_passages_supporting_claim(claim_id)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_evidence_provenance(claim_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+    """Retrieves full provenance chain for a claim."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        chain = EvidenceGraphQueryService(session).get_claim_provenance_chain(claim_id)
+        return chain.model_dump()
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_graph_validation_report(request_id: str, db: Optional[Any] = None) -> Dict[str, Any]:
+    """Audits graph integrity and provenance consistency."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_validation_service import GraphValidationService
+
+    session = db or SessionLocal()
+    try:
+        val = GraphValidationService(session).validate_graph(request_id)
+        return {
+            "integrity_status": val.integrity_status,
+            "total_nodes": val.total_nodes,
+            "total_relationships": val.total_relationships,
+            "claims_with_evidence": val.claims_with_evidence,
+            "claims_without_evidence": val.claims_without_evidence,
+            "orphan_nodes_count": val.orphan_nodes_count,
+            "unresolved_entities_count": val.unresolved_entities_count,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_find_shared_methods(paper_id_a: str, paper_id_b: str, db: Optional[Any] = None) -> List[str]:
+    """Identifies methods used by both papers."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        return EvidenceGraphQueryService(session).find_shared_methods_between_papers(paper_id_a, paper_id_b)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_find_shared_datasets(paper_id_a: str, paper_id_b: str, db: Optional[Any] = None) -> List[str]:
+    """Identifies datasets evaluated in both papers."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.graph.graph_query_service import EvidenceGraphQueryService
+
+    session = db or SessionLocal()
+    try:
+        return EvidenceGraphQueryService(session).find_shared_datasets_between_papers(paper_id_a, paper_id_b)
+    finally:
+        if db is None:
+            session.close()
+
+
+

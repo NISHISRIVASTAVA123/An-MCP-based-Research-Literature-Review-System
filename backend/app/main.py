@@ -23,6 +23,7 @@ from backend.app.api.routes import (
     screening_routes,
     document_routes,
     evidence_routes,
+    graph_routes,
 )
 
 
@@ -67,6 +68,7 @@ app.include_router(mcp_routes.router)
 app.include_router(screening_routes.router)
 app.include_router(document_routes.router)
 app.include_router(evidence_routes.router)
+app.include_router(graph_routes.router)
 
 
 @app.get("/api/health", tags=["Health"])
