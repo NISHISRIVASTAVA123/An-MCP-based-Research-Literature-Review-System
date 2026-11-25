@@ -183,6 +183,102 @@ def list_mcp_tools():
                     "paper_id_b": "string (required)",
                 },
             },
+            {
+                "name": "generate_literature_synthesis",
+                "description": "Executes a full literature synthesis run producing themes, patterns, and candidate gaps (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "selected_paper_ids": "array of strings (optional)",
+                },
+            },
+            {
+                "name": "get_literature_synthesis",
+                "description": "Retrieves structured narrative literature synthesis and section overviews (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "run_id": "string (optional)",
+                },
+            },
+            {
+                "name": "get_paper_comparison_matrix",
+                "description": "Extracts a multidimensional comparison matrix across screened papers (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "method": "string (optional)",
+                    "dataset": "string (optional)",
+                    "model": "string (optional)",
+                    "year": "integer (optional)",
+                },
+            },
+            {
+                "name": "identify_research_themes",
+                "description": "Identifies recurring methodological, empirical, and theoretical research themes (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "analyze_methodology_trends",
+                "description": "Analyzes methodology frequencies and algorithmic combinations across literature (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "analyze_dataset_trends",
+                "description": "Analyzes benchmark dataset usage and method-dataset cross-tabulations (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "analyze_research_trends",
+                "description": "Analyzes empirical patterns across methods, datasets, models, metrics, and years (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
+            {
+                "name": "generate_candidate_research_gaps",
+                "description": "Generates evidence-backed candidate research gaps across 10 gap categories (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                    "synthesis_run_id": "string (optional)",
+                },
+            },
+            {
+                "name": "get_candidate_gap_details",
+                "description": "Retrieves full candidate research gap description, rationale, assumptions, and validation queries (Phase 4)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_candidate_gap_evidence",
+                "description": "Retrieves verbatim evidence passages and grounding links backing a candidate gap (Phase 4)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                },
+            },
+            {
+                "name": "update_candidate_gap_review",
+                "description": "Records human review decisions (accept, reject, request_evidence, edit) on a candidate gap (Phase 4)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                    "action": "string (required: accept, reject, request_evidence, edit)",
+                    "reviewer": "string (optional, default 'agent')",
+                    "comment": "string (optional)",
+                    "revised_title": "string (optional)",
+                    "revised_description": "string (optional)",
+                },
+            },
+            {
+                "name": "get_synthesis_history",
+                "description": "Retrieves previous synthesis runs and configuration snapshots for reproducibility (Phase 4)",
+                "parameters": {
+                    "request_id": "string (required)",
+                },
+            },
 
         ],
     }

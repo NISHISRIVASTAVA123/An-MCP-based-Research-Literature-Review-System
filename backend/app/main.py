@@ -24,6 +24,7 @@ from backend.app.api.routes import (
     document_routes,
     evidence_routes,
     graph_routes,
+    synthesis_routes,
 )
 
 
@@ -69,6 +70,7 @@ app.include_router(screening_routes.router)
 app.include_router(document_routes.router)
 app.include_router(evidence_routes.router)
 app.include_router(graph_routes.router)
+app.include_router(synthesis_routes.router)
 
 
 @app.get("/api/health", tags=["Health"])

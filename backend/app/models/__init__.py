@@ -15,6 +15,14 @@ from backend.app.models.graph import (
     GraphBuildRun,
     GraphValidationRecord,
 )
+from backend.app.models.synthesis import (
+    SynthesisRun,
+    LiteratureTheme,
+    LiteraturePattern,
+    CandidateResearchGap,
+    GapEvidenceLink,
+    HumanReviewRecord,
+)
 
 __all__ = [
     "Base",
@@ -36,4 +44,10 @@ __all__ = [
     "EntityAlias",
     "GraphBuildRun",
     "GraphValidationRecord",
+    "SynthesisRun",
+    "LiteratureTheme",
+    "LiteraturePattern",
+    "CandidateResearchGap",
+    "GapEvidenceLink",
+    "HumanReviewRecord",
 ]

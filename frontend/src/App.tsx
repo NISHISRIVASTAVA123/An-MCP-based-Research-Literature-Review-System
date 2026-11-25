@@ -24,6 +24,7 @@ import { StrategyEditor } from './components/StrategyEditor';
 import { SearchDashboard } from './components/SearchDashboard';
 import { ScreeningView } from './components/ScreeningView';
 import { EvidenceGraphView } from './components/EvidenceGraphView';
+import { LiteratureSynthesisView } from './components/LiteratureSynthesisView';
 import { EvidenceViewModal } from './components/EvidenceViewModal';
 import { PaperModal } from './components/PaperModal';
 import { HistoryModal } from './components/HistoryModal';
@@ -31,7 +32,7 @@ import { McpModal } from './components/McpModal';
 import { AlertCircle, FlaskConical } from 'lucide-react';
 
 export function App() {
-  const [activeStep, setActiveStep] = useState<'form' | 'strategy' | 'dashboard' | 'screening' | 'graph'>('form');
+  const [activeStep, setActiveStep] = useState<'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis'>('form');
   const [currentRequest, setCurrentRequest] = useState<ResearchRequest | null>(null);
   const [currentStrategy, setCurrentStrategy] = useState<SearchStrategy | null>(null);
   const [lastExecution, setLastExecution] = useState<SearchExecutionSummary | undefined>(undefined);
@@ -152,6 +153,7 @@ export function App() {
         onOpenHistory={() => setIsHistoryOpen(true)}
         onOpenMcp={() => setIsMcpOpen(true)}
         activeStep={activeStep}
+        onSelectStep={setActiveStep}
       />
 
       {/* Global Error Banner */}
@@ -223,6 +225,13 @@ export function App() {
             <EvidenceGraphView
               request={currentRequest}
               onBackToScreening={() => setActiveStep('screening')}
+              onProceedToSynthesis={() => setActiveStep('synthesis')}
+            />
+          )}
+
+          {activeStep === 'synthesis' && currentRequest && (
+            <LiteratureSynthesisView
+              requestId={currentRequest.id}
             />
           )}
 

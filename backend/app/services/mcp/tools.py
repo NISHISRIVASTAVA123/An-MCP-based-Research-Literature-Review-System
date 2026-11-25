@@ -381,4 +381,292 @@ def tool_find_shared_datasets(paper_id_a: str, paper_id_b: str, db: Optional[Any
             session.close()
 
 
+# ==============================================================================
+# PHASE 4 MCP TOOLS: Literature Synthesis & Candidate Gap Generation
+# ==============================================================================
+
+def tool_generate_literature_synthesis(
+    request_id: str,
+    selected_paper_ids: Optional[List[str]] = None,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Generates a complete literature synthesis run with themes, patterns, and candidate gaps."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.synthesis_orchestrator import SynthesisOrchestrator
+    from backend.app.schemas.synthesis import SynthesisRunCreate
+
+    session = db or SessionLocal()
+    try:
+        orchestrator = SynthesisOrchestrator(session)
+        payload = SynthesisRunCreate(selected_paper_ids=selected_paper_ids)
+        run = orchestrator.execute_synthesis_run(request_id, payload)
+        return {
+            "run_id": run.id,
+            "status": run.status,
+            "run_number": run.run_number,
+            "selected_papers_count": len(run.selected_paper_ids or []),
+            "created_at": run.created_at.isoformat() if run.created_at else None,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_literature_synthesis(
+    request_id: str,
+    run_id: Optional[str] = None,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Retrieves the narrative and structured literature synthesis for a run."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.synthesis_repository import SynthesisRepository
+
+    session = db or SessionLocal()
+    try:
+        repo = SynthesisRepository(session)
+        run = repo.get_synthesis_run(run_id) if run_id else repo.get_latest_synthesis_run(request_id)
+        if not run:
+            return {"error": "No synthesis run found."}
+        return {
+            "run_id": run.id,
+            "status": run.status,
+            "summary_narrative": run.summary_narrative,
+            "created_at": run.created_at.isoformat() if run.created_at else None,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_paper_comparison_matrix(
+    request_id: str,
+    method: Optional[str] = None,
+    dataset: Optional[str] = None,
+    model: Optional[str] = None,
+    year: Optional[int] = None,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Constructs dynamic multidimensional comparison matrix across papers."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.comparison_matrix_service import PaperComparisonMatrixService
+
+    session = db or SessionLocal()
+    try:
+        matrix = PaperComparisonMatrixService(session).generate_matrix(
+            request_id=request_id,
+            method_filter=method,
+            dataset_filter=dataset,
+            model_filter=model,
+            year_filter=year,
+        )
+        return matrix.model_dump()
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_identify_research_themes(
+    request_id: str,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Discovers recurring research themes across retrieved literature."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.theme_service import ResearchThemeService
+
+    session = db or SessionLocal()
+    try:
+        return ResearchThemeService(session).identify_themes(request_id)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_analyze_methodology_trends(
+    request_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Analyzes methodology usage frequencies and combinations across papers."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.pattern_analysis_service import PatternAnalysisService
+
+    session = db or SessionLocal()
+    try:
+        patterns = PatternAnalysisService(session).analyze_patterns(request_id)
+        meth_pat = next((p for p in patterns if p["pattern_type"] == "methodology"), None)
+        return meth_pat or {"error": "No methodology pattern detected."}
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_analyze_dataset_trends(
+    request_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Analyzes benchmark dataset distributions and method-dataset cross-tabulations."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.pattern_analysis_service import PatternAnalysisService
+
+    session = db or SessionLocal()
+    try:
+        patterns = PatternAnalysisService(session).analyze_patterns(request_id)
+        ds_pat = next((p for p in patterns if p["pattern_type"] == "dataset"), None)
+        return ds_pat or {"error": "No dataset pattern detected."}
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_analyze_research_trends(
+    request_id: str,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Analyzes comprehensive empirical, evaluation, and publication year trends."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.pattern_analysis_service import PatternAnalysisService
+
+    session = db or SessionLocal()
+    try:
+        return PatternAnalysisService(session).analyze_patterns(request_id)
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_generate_candidate_research_gaps(
+    request_id: str,
+    synthesis_run_id: Optional[str] = None,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Generates traceable candidate research gaps from literature patterns."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.synthesis_repository import SynthesisRepository
+    from backend.app.services.synthesis.gap_generator import CandidateResearchGapGenerator
+
+    session = db or SessionLocal()
+    try:
+        repo = SynthesisRepository(session)
+        run = repo.get_synthesis_run(synthesis_run_id) if synthesis_run_id else repo.get_latest_synthesis_run(request_id)
+        if not run:
+            # Trigger run if none exists
+            from backend.app.services.synthesis.synthesis_orchestrator import SynthesisOrchestrator
+            run = SynthesisOrchestrator(session).execute_synthesis_run(request_id)
+
+        gaps = repo.get_candidate_gaps_by_run(run.id)
+        return [
+            {
+                "id": g.id,
+                "title": g.title,
+                "category": g.category,
+                "preliminary_confidence": g.preliminary_confidence,
+                "supporting_papers_count": len(g.supporting_paper_ids or []),
+                "review_status": g.human_review_status,
+            }
+            for g in gaps
+        ]
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_candidate_gap_details(
+    gap_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Retrieves full candidate research gap description, rationale, and assumptions."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.review_service import SynthesisReviewService
+
+    session = db or SessionLocal()
+    try:
+        gap = SynthesisReviewService(session).get_gap_with_provenance(gap_id)
+        return gap or {"error": f"Candidate gap '{gap_id}' not found."}
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_candidate_gap_evidence(
+    gap_id: str,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieves verbatim evidence passages and grounding links backing a candidate gap."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.review_service import SynthesisReviewService
+
+    session = db or SessionLocal()
+    try:
+        gap = SynthesisReviewService(session).get_gap_with_provenance(gap_id)
+        if not gap:
+            return [{"error": f"Candidate gap '{gap_id}' not found."}]
+        return gap.get("evidence_links", [])
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_update_candidate_gap_review(
+    gap_id: str,
+    action: str,
+    reviewer: str = "agent",
+    comment: Optional[str] = None,
+    revised_title: Optional[str] = None,
+    revised_description: Optional[str] = None,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Records a human or agent review decision on a candidate research gap."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.synthesis.review_service import SynthesisReviewService
+    from backend.app.schemas.synthesis import HumanReviewRequest
+
+    session = db or SessionLocal()
+    try:
+        req = HumanReviewRequest(
+            reviewer_reference=reviewer,
+            review_action=action,
+            reviewer_comment=comment,
+            revised_title=revised_title,
+            revised_description=revised_description,
+        )
+        updated_gap = SynthesisReviewService(session).review_candidate_gap(gap_id, req)
+        return {
+            "id": updated_gap.id,
+            "title": updated_gap.title,
+            "human_review_status": updated_gap.human_review_status,
+            "updated_at": updated_gap.updated_at.isoformat() if updated_gap.updated_at else None,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_synthesis_history(
+    request_id: str,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Lists past synthesis runs with version metadata for reproducibility."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.synthesis_repository import SynthesisRepository
+
+    session = db or SessionLocal()
+    try:
+        runs = SynthesisRepository(session).get_synthesis_runs_by_request(request_id)
+        return [
+            {
+                "id": r.id,
+                "run_number": r.run_number,
+                "status": r.status,
+                "paper_count": len(r.selected_paper_ids or []),
+                "graph_version": r.evidence_graph_version,
+                "model_name": r.model_name,
+                "created_at": r.created_at.isoformat() if r.created_at else None,
+            }
+            for r in runs
+        ]
+    finally:
+        if db is None:
+            session.close()
+
+
+
 

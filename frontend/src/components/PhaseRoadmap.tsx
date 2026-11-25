@@ -18,12 +18,12 @@ const PHASES = [
   {
     num: 3, label: 'Evidence Database & Graph',
     sub: 'Graph construction & provenance',
-    icon: GitBranch, color: '#8b5cf6', active: true, done: false,
+    icon: CheckCircle2, color: '#10b981', active: false, done: true,
   },
   {
     num: 4, label: 'Literature Synthesis',
     sub: 'Gap identification baseline',
-    icon: Microscope, color: '#f59e0b', active: false, done: false,
+    icon: Microscope, color: '#f59e0b', active: true, done: false,
   },
   {
     num: 5, label: 'Counterevidence Search',
@@ -53,8 +53,8 @@ const PHASES = [
 ];
 
 interface PhaseRoadmapProps {
-  currentActiveStep?: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph';
-  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph') => void;
+  currentActiveStep?: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis';
+  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis') => void;
 }
 
 

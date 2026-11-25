@@ -27,6 +27,18 @@ from backend.app.services.mcp.tools import (
     tool_get_graph_validation_report,
     tool_find_shared_methods,
     tool_find_shared_datasets,
+    tool_get_literature_synthesis,
+    tool_generate_literature_synthesis,
+    tool_get_paper_comparison_matrix,
+    tool_identify_research_themes,
+    tool_analyze_methodology_trends,
+    tool_analyze_dataset_trends,
+    tool_analyze_research_trends,
+    tool_generate_candidate_research_gaps,
+    tool_get_candidate_gap_details,
+    tool_get_candidate_gap_evidence,
+    tool_update_candidate_gap_review,
+    tool_get_synthesis_history,
 )
 
 # Initialize MCP server
@@ -257,6 +269,120 @@ def find_shared_methods(paper_id_a: str, paper_id_b: str) -> List[str]:
 def find_shared_datasets(paper_id_a: str, paper_id_b: str) -> List[str]:
     """Identifies datasets evaluated in both papers (Phase 3)."""
     return tool_find_shared_datasets(paper_id_a, paper_id_b)
+
+
+# ==============================================================================
+# PHASE 4 TOOLS: Literature Synthesis & Candidate Research-Gap Generation
+# ==============================================================================
+
+@mcp_server.tool()
+def generate_literature_synthesis(
+    request_id: str,
+    selected_paper_ids: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Executes a full literature synthesis run producing themes, patterns, and candidate gaps (Phase 4)."""
+    return tool_generate_literature_synthesis(request_id, selected_paper_ids)
+
+
+@mcp_server.tool()
+def get_literature_synthesis(
+    request_id: str,
+    run_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Retrieves structured narrative literature synthesis and section overviews (Phase 4)."""
+    return tool_get_literature_synthesis(request_id, run_id)
+
+
+@mcp_server.tool()
+def get_paper_comparison_matrix(
+    request_id: str,
+    method: Optional[str] = None,
+    dataset: Optional[str] = None,
+    model: Optional[str] = None,
+    year: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Extracts a multidimensional comparison matrix across screened papers (Phase 4)."""
+    return tool_get_paper_comparison_matrix(request_id, method, dataset, model, year)
+
+
+@mcp_server.tool()
+def identify_research_themes(
+    request_id: str,
+) -> List[Dict[str, Any]]:
+    """Identifies recurring methodological, empirical, and theoretical research themes (Phase 4)."""
+    return tool_identify_research_themes(request_id)
+
+
+@mcp_server.tool()
+def analyze_methodology_trends(
+    request_id: str,
+) -> Dict[str, Any]:
+    """Analyzes methodology frequencies and algorithmic combinations across literature (Phase 4)."""
+    return tool_analyze_methodology_trends(request_id)
+
+
+@mcp_server.tool()
+def analyze_dataset_trends(
+    request_id: str,
+) -> Dict[str, Any]:
+    """Analyzes benchmark dataset usage and method-dataset cross-tabulations (Phase 4)."""
+    return tool_analyze_dataset_trends(request_id)
+
+
+@mcp_server.tool()
+def analyze_research_trends(
+    request_id: str,
+) -> List[Dict[str, Any]]:
+    """Analyzes empirical patterns across methods, datasets, models, metrics, and years (Phase 4)."""
+    return tool_analyze_research_trends(request_id)
+
+
+@mcp_server.tool()
+def generate_candidate_research_gaps(
+    request_id: str,
+    synthesis_run_id: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Generates evidence-backed candidate research gaps across 10 gap categories (Phase 4)."""
+    return tool_generate_candidate_research_gaps(request_id, synthesis_run_id)
+
+
+@mcp_server.tool()
+def get_candidate_gap_details(
+    gap_id: str,
+) -> Dict[str, Any]:
+    """Retrieves full candidate research gap description, rationale, assumptions, and validation queries (Phase 4)."""
+    return tool_get_candidate_gap_details(gap_id)
+
+
+@mcp_server.tool()
+def get_candidate_gap_evidence(
+    gap_id: str,
+) -> List[Dict[str, Any]]:
+    """Retrieves verbatim evidence passages and grounding links backing a candidate gap (Phase 4)."""
+    return tool_get_candidate_gap_evidence(gap_id)
+
+
+@mcp_server.tool()
+def update_candidate_gap_review(
+    gap_id: str,
+    action: str,
+    reviewer: str = "agent",
+    comment: Optional[str] = None,
+    revised_title: Optional[str] = None,
+    revised_description: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Records human review decisions (accept, reject, request_evidence, edit) on a candidate gap (Phase 4)."""
+    return tool_update_candidate_gap_review(
+        gap_id, action, reviewer, comment, revised_title, revised_description
+    )
+
+
+@mcp_server.tool()
+def get_synthesis_history(
+    request_id: str,
+) -> List[Dict[str, Any]]:
+    """Retrieves previous synthesis runs and configuration snapshots for reproducibility (Phase 4)."""
+    return tool_get_synthesis_history(request_id)
 
 
 if __name__ == "__main__":

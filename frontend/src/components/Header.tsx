@@ -5,7 +5,8 @@ interface HeaderProps {
   onNewReview: () => void;
   onOpenHistory: () => void;
   onOpenMcp: () => void;
-  activeStep: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph';
+  activeStep: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis';
+  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis') => void;
 }
 
 const STEPS = [
@@ -14,6 +15,7 @@ const STEPS = [
   { id: 'dashboard', label: 'Corpus Results',     num: 3 },
   { id: 'screening', label: 'Screening & Evidence', num: 4 },
   { id: 'graph',     label: 'Evidence Graph',     num: 5 },
+  { id: 'synthesis', label: 'Literature Synthesis', num: 6 },
 ] as const;
 
 export const Header: React.FC<HeaderProps> = ({
@@ -21,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenHistory,
   onOpenMcp,
   activeStep,
+  onSelectStep,
 }) => {
   const activeIdx = STEPS.findIndex((s) => s.id === activeStep);
 
@@ -53,11 +56,11 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               <span style={{
                 fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em',
-                background: 'rgba(56,189,248,.2)', color: '#7dd3fc',
+                background: 'rgba(245,158,11,.2)', color: '#fbbf24',
                 borderRadius: '100px', padding: '0.15rem 0.55rem',
-                border: '1px solid rgba(56,189,248,.35)',
+                border: '1px solid rgba(245,158,11,.35)',
               }}>
-                PHASE 3 ACTIVE
+                PHASE 4 ACTIVE
               </span>
             </div>
             <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>
@@ -73,14 +76,18 @@ export const Header: React.FC<HeaderProps> = ({
             const isActive = i === activeIdx;
             return (
               <React.Fragment key={step.id}>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '0.4rem',
-                  padding: '0.4rem 0.8rem', borderRadius: '0.5rem',
-                  fontSize: '0.78rem', fontWeight: 600,
-                  color: isActive ? '#fff' : isDone ? '#34d399' : 'rgba(255,255,255,0.35)',
-                  background: isActive ? 'rgba(99,102,241,0.3)' : 'transparent',
-                  transition: 'all 0.2s',
-                }}>
+                <div
+                  onClick={() => onSelectStep && onSelectStep(step.id as any)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.4rem',
+                    padding: '0.4rem 0.8rem', borderRadius: '0.5rem',
+                    fontSize: '0.78rem', fontWeight: 600,
+                    color: isActive ? '#fff' : isDone ? '#34d399' : 'rgba(255,255,255,0.35)',
+                    background: isActive ? 'rgba(99,102,241,0.3)' : 'transparent',
+                    cursor: onSelectStep ? 'pointer' : 'default',
+                    transition: 'all 0.2s',
+                  }}
+                >
                   <div style={{
                     width: 22, height: 22, borderRadius: '50%',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',

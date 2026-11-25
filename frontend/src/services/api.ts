@@ -334,3 +334,146 @@ export async function getClaimProvenance(claimId: string): Promise<ProvenanceCha
   return res.json();
 }
 
+// ==============================================================================
+// PHASE 4: LITERATURE SYNTHESIS & CANDIDATE RESEARCH-GAP APIS
+// ==============================================================================
+
+import {
+  SynthesisRun,
+  LiteratureTheme,
+  LiteraturePattern,
+  CandidateResearchGap,
+  PaperComparisonMatrix,
+  SynthesisOverviewStats,
+} from '../types/synthesis';
+
+export async function createSynthesisRun(
+  requestId: string,
+  payload?: { selected_paper_ids?: string[]; synthesis_configuration?: Record<string, any> }
+): Promise<SynthesisRun> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/runs`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to start synthesis run');
+  }
+  return res.json();
+}
+
+export async function getSynthesisRuns(requestId: string): Promise<SynthesisRun[]> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/runs`);
+  if (!res.ok) throw new Error('Failed to fetch synthesis runs');
+  return res.json();
+}
+
+export async function getSynthesisRun(requestId: string, runId: string): Promise<SynthesisRun> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/runs/${runId}`);
+  if (!res.ok) throw new Error('Failed to fetch synthesis run details');
+  return res.json();
+}
+
+export async function getSynthesisOverview(requestId: string): Promise<SynthesisOverviewStats> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/overview`);
+  if (!res.ok) throw new Error('Failed to fetch synthesis overview stats');
+  return res.json();
+}
+
+export async function getPaperComparison(
+  requestId: string,
+  params?: {
+    method?: string;
+    dataset?: string;
+    model?: string;
+    year?: number;
+    sort_by?: string;
+  }
+): Promise<PaperComparisonMatrix> {
+  const q = new URLSearchParams();
+  if (params?.method) q.append('method', params.method);
+  if (params?.dataset) q.append('dataset', params.dataset);
+  if (params?.model) q.append('model', params.model);
+  if (params?.year) q.append('year', String(params.year));
+  if (params?.sort_by) q.append('sort_by', params.sort_by);
+  q.append('export_format', 'json');
+
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/comparison?${q.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch comparison matrix');
+  return res.json();
+}
+
+export function getPaperComparisonExportUrl(
+  requestId: string,
+  format: 'csv' | 'markdown'
+): string {
+  return `${API_BASE}/research-requests/${requestId}/synthesis/comparison?export_format=${format}`;
+}
+
+export async function getRunThemes(requestId: string, runId: string): Promise<LiteratureTheme[]> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/runs/${runId}/themes`);
+  if (!res.ok) throw new Error('Failed to fetch research themes');
+  return res.json();
+}
+
+export async function getRunPatterns(requestId: string, runId: string): Promise<LiteraturePattern[]> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/runs/${runId}/patterns`);
+  if (!res.ok) throw new Error('Failed to fetch empirical patterns');
+  return res.json();
+}
+
+export async function getCandidateGaps(
+  requestId: string,
+  runId: string,
+  category?: string,
+  status?: string
+): Promise<CandidateResearchGap[]> {
+  const q = new URLSearchParams();
+  if (category) q.append('category', category);
+  if (status) q.append('status', status);
+
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/runs/${runId}/candidate-gaps?${q.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch candidate research gaps');
+  return res.json();
+}
+
+export async function getCandidateGap(requestId: string, gapId: string): Promise<CandidateResearchGap> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/candidate-gaps/${gapId}`);
+  if (!res.ok) throw new Error('Failed to fetch candidate gap details');
+  return res.json();
+}
+
+export async function reviewCandidateGap(
+  requestId: string,
+  gapId: string,
+  payload: {
+    reviewer_reference: string;
+    review_action: string;
+    revised_title?: string;
+    revised_description?: string;
+    revised_category?: string;
+    reviewer_comment?: string;
+  }
+): Promise<CandidateResearchGap> {
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/candidate-gaps/${gapId}/review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to submit gap review');
+  return res.json();
+}
+
+export async function compareRunsHistory(
+  requestId: string,
+  runAId: string,
+  runBId: string
+): Promise<any> {
+  const q = new URLSearchParams({ run_a_id: runAId, run_b_id: runBId });
+  const res = await fetch(`${API_BASE}/research-requests/${requestId}/synthesis/history?${q.toString()}`);
+  if (!res.ok) throw new Error('Failed to compare synthesis runs');
+  return res.json();
+}
+
+

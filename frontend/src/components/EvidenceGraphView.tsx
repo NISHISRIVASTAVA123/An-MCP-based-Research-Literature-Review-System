@@ -20,6 +20,7 @@ import {
   History,
   CheckCircle2,
   AlertCircle,
+  Microscope,
 } from 'lucide-react';
 import { ResearchRequest } from '../types';
 import {
@@ -39,6 +40,7 @@ import { GraphBuildModal } from './GraphBuildModal';
 interface EvidenceGraphViewProps {
   request: ResearchRequest;
   onBackToScreening?: () => void;
+  onProceedToSynthesis?: () => void;
 }
 
 const NODE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -61,6 +63,7 @@ const NODE_COLORS: Record<string, { bg: string; border: string; text: string }> 
 export const EvidenceGraphView: React.FC<EvidenceGraphViewProps> = ({
   request,
   onBackToScreening,
+  onProceedToSynthesis,
 }) => {
   const [graphData, setGraphData] = useState<EvidenceGraphData | null>(null);
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
@@ -326,6 +329,29 @@ export const EvidenceGraphView: React.FC<EvidenceGraphViewProps> = ({
               <Layers size={15} />
               <span>Sync Extractions</span>
             </button>
+
+            {onProceedToSynthesis && (
+              <button
+                onClick={onProceedToSynthesis}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.55rem 0.95rem',
+                  borderRadius: '0.5rem',
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  color: '#fff',
+                  border: 'none',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 10px rgba(245,158,11,0.3)',
+                }}
+              >
+                <Microscope size={15} />
+                <span>Synthesize Literature →</span>
+              </button>
+            )}
 
             <button
               onClick={() => setIsBuildModalOpen(true)}
