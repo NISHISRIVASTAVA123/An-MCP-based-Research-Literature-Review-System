@@ -2,7 +2,18 @@
 
 > **Academic Capstone Research Project** | B.Tech Computer Science (Team of 3)  
 > **12-Week Roadmap Target**: Autonomous Evidence Graph & Counterevidence Gap Verification System  
-> **Current Status**: **Phase 1, Phase 2, Phase 3, & Phase 4 Complete (Retrieval, Screening, Evidence Extraction, Evidence Graph Construction, & Literature Synthesis / Baseline Gap Generation)**
+> **Current Status**: **Phases 1 through 5 Complete (Retrieval, Screening, Evidence Extraction, Evidence Graph Construction, Literature Synthesis / Gap Generation, & Explicit Counterevidence Retrieval)**
+
+### Phase 5: Explicit Counterevidence Retrieval & Evidence Traceability
+- **Candidate Gap Decomposition**: Breaks high-level candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- **Adversarial Multi-Angle Query Formulation**: Formulates targeted queries across 4 categories (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) designed to retrieve contradictory findings.
+- **Academic Retrieval & Provenance Segregation**: Concurrently queries OpenAlex, Semantic Scholar, Crossref, and arXiv; deduplicates against the existing corpus and isolates newly discovered papers (`discovery_tag="counterevidence_discovered"`).
+- **Strict Evidence Hierarchy & Relevance Classification**: 5-tier classification (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`). Enforces Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flags abstract-only evidence.
+- **Traceable Source Passage Anchoring**: Extracts verbatim quotes, page coordinates, and section headings with complete verification status.
+- **Gap Resilience Impact Aggregator**: Evaluates balance of evidence to assign an impact assessment (`strongly_challenged` through `unchallenged`) and list remaining unresolved sub-claims.
+- **Human Auditor Review Workflow**: Complete UI review controls with override capability, reviewer rationale notes, and automatic profile recalculation.
+- **7 New Phase 5 MCP Tools**: Expands multi-agent tool suite to 39 tools total.
+- **Full Phase 1–5 Test Suite**: 67 automated regression tests passing with zero failures.
 
 ---
 
@@ -20,11 +31,22 @@ This application investigates the following central research hypothesis:
 | **Phase 2** | **Paper screening and structured evidence extraction** | 🟢 **COMPLETED** |
 | **Phase 3** | **Structured evidence database & evidence graph construction** | 🟢 **COMPLETED** |
 | **Phase 4** | **Literature synthesis & baseline candidate research-gap generation** | 🟢 **COMPLETED** |
-| Phase 5 | Explicit counterevidence retrieval | ⚪ Queued |
+| **Phase 5** | **Explicit counterevidence retrieval & evidence traceability** | 🟢 **COMPLETED** |
 | Phase 6 | Evidence-graph-based claim verification | ⚪ Queued |
 | Phase 7 | Coverage-aware research-gap assessment (4-way classification) | ⚪ Queued |
 | Phase 8 | Comprehensive literature review & gap report generator | ⚪ Queued |
 | Phase 9 | Experimental evaluation, ablations & benchmark comparisons | ⚪ Queued |
+
+### Phase 5: Explicit Counterevidence Retrieval & Evidence Traceability
+- **Candidate Gap Decomposition**: Breaks high-level candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- **Adversarial Multi-Angle Query Formulation**: Formulates targeted queries across 4 categories (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) designed to retrieve contradictory findings.
+- **Academic Retrieval & Provenance Segregation**: Concurrently queries OpenAlex, Semantic Scholar, Crossref, and arXiv; deduplicates against the existing corpus and isolates newly discovered papers (`discovery_tag="counterevidence_discovered"`).
+- **Strict Evidence Hierarchy & Relevance Classification**: 5-tier classification (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`). Enforces Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flags abstract-only evidence.
+- **Traceable Source Passage Anchoring**: Extracts verbatim quotes, page coordinates, and section headings with complete verification status.
+- **Gap Resilience Impact Aggregator**: Evaluates balance of evidence to assign an impact assessment (`strongly_challenged` through `unchallenged`) and list remaining unresolved sub-claims.
+- **Human Auditor Review Workflow**: Complete UI review controls with override capability, reviewer rationale notes, and automatic profile recalculation.
+- **7 New Phase 5 MCP Tools**: Expands multi-agent tool suite to 39 tools total.
+- **Full Phase 1–5 Test Suite**: 67 automated regression tests passing with zero failures.
 
 ---
 
@@ -68,6 +90,17 @@ This application investigates the following central research hypothesis:
 - **Human Review Workspace**: Full review lifecycle (accept, reject, edit, request evidence) with an immutable audit log (`HumanReviewRecord`) and slide-over gap detail drawer.
 - **12 New Phase 4 Model Context Protocol (MCP) Tools**: Expands multi-agent tool suite to 32 tools total.
 
+### Phase 5: Explicit Counterevidence Retrieval & Evidence Traceability
+- **Candidate Gap Decomposition**: Breaks high-level candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- **Adversarial Multi-Angle Query Formulation**: Formulates targeted queries across 4 categories (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) designed to retrieve contradictory findings.
+- **Academic Retrieval & Provenance Segregation**: Concurrently queries OpenAlex, Semantic Scholar, Crossref, and arXiv; deduplicates against the existing corpus and isolates newly discovered papers (`discovery_tag="counterevidence_discovered"`).
+- **Strict Evidence Hierarchy & Relevance Classification**: 5-tier classification (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`). Enforces Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flags abstract-only evidence.
+- **Traceable Source Passage Anchoring**: Extracts verbatim quotes, page coordinates, and section headings with complete verification status.
+- **Gap Resilience Impact Aggregator**: Evaluates balance of evidence to assign an impact assessment (`strongly_challenged` through `unchallenged`) and list remaining unresolved sub-claims.
+- **Human Auditor Review Workflow**: Complete UI review controls with override capability, reviewer rationale notes, and automatic profile recalculation.
+- **7 New Phase 5 MCP Tools**: Expands multi-agent tool suite to 39 tools total.
+- **Full Phase 1–5 Test Suite**: 67 automated regression tests passing with zero failures.
+
 ---
 
 ## 3. Quick Start & Execution
@@ -98,6 +131,17 @@ npm run dev
 ```
 Open **http://localhost:5173** (API calls are automatically proxied to port 8000).
 
+### Phase 5: Explicit Counterevidence Retrieval & Evidence Traceability
+- **Candidate Gap Decomposition**: Breaks high-level candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- **Adversarial Multi-Angle Query Formulation**: Formulates targeted queries across 4 categories (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) designed to retrieve contradictory findings.
+- **Academic Retrieval & Provenance Segregation**: Concurrently queries OpenAlex, Semantic Scholar, Crossref, and arXiv; deduplicates against the existing corpus and isolates newly discovered papers (`discovery_tag="counterevidence_discovered"`).
+- **Strict Evidence Hierarchy & Relevance Classification**: 5-tier classification (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`). Enforces Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flags abstract-only evidence.
+- **Traceable Source Passage Anchoring**: Extracts verbatim quotes, page coordinates, and section headings with complete verification status.
+- **Gap Resilience Impact Aggregator**: Evaluates balance of evidence to assign an impact assessment (`strongly_challenged` through `unchallenged`) and list remaining unresolved sub-claims.
+- **Human Auditor Review Workflow**: Complete UI review controls with override capability, reviewer rationale notes, and automatic profile recalculation.
+- **7 New Phase 5 MCP Tools**: Expands multi-agent tool suite to 39 tools total.
+- **Full Phase 1–5 Test Suite**: 67 automated regression tests passing with zero failures.
+
 ---
 
 ## 4. Running the Tests & Live Verifications
@@ -124,6 +168,17 @@ cd frontend
 npm run build
 ```
 *Verifies 100% clean TypeScript compilation and bundles production assets into `dist/` in < 3s.*
+
+### Phase 5: Explicit Counterevidence Retrieval & Evidence Traceability
+- **Candidate Gap Decomposition**: Breaks high-level candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- **Adversarial Multi-Angle Query Formulation**: Formulates targeted queries across 4 categories (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) designed to retrieve contradictory findings.
+- **Academic Retrieval & Provenance Segregation**: Concurrently queries OpenAlex, Semantic Scholar, Crossref, and arXiv; deduplicates against the existing corpus and isolates newly discovered papers (`discovery_tag="counterevidence_discovered"`).
+- **Strict Evidence Hierarchy & Relevance Classification**: 5-tier classification (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`). Enforces Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flags abstract-only evidence.
+- **Traceable Source Passage Anchoring**: Extracts verbatim quotes, page coordinates, and section headings with complete verification status.
+- **Gap Resilience Impact Aggregator**: Evaluates balance of evidence to assign an impact assessment (`strongly_challenged` through `unchallenged`) and list remaining unresolved sub-claims.
+- **Human Auditor Review Workflow**: Complete UI review controls with override capability, reviewer rationale notes, and automatic profile recalculation.
+- **7 New Phase 5 MCP Tools**: Expands multi-agent tool suite to 39 tools total.
+- **Full Phase 1–5 Test Suite**: 67 automated regression tests passing with zero failures.
 
 ---
 
@@ -186,6 +241,17 @@ The server provides a native Model Context Protocol (MCP) server compatible with
 30. `get_candidate_gap_evidence`: Retrieve verbatim evidence passages and grounding links backing a candidate gap.
 31. `update_candidate_gap_review`: Submit human review decision (accept, reject, edit, request evidence) with audit log.
 32. `get_synthesis_history`: List past versioned synthesis runs for reproducibility and audit comparisons.
+
+### Phase 5: Explicit Counterevidence Retrieval & Evidence Traceability
+- **Candidate Gap Decomposition**: Breaks high-level candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- **Adversarial Multi-Angle Query Formulation**: Formulates targeted queries across 4 categories (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) designed to retrieve contradictory findings.
+- **Academic Retrieval & Provenance Segregation**: Concurrently queries OpenAlex, Semantic Scholar, Crossref, and arXiv; deduplicates against the existing corpus and isolates newly discovered papers (`discovery_tag="counterevidence_discovered"`).
+- **Strict Evidence Hierarchy & Relevance Classification**: 5-tier classification (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`). Enforces Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flags abstract-only evidence.
+- **Traceable Source Passage Anchoring**: Extracts verbatim quotes, page coordinates, and section headings with complete verification status.
+- **Gap Resilience Impact Aggregator**: Evaluates balance of evidence to assign an impact assessment (`strongly_challenged` through `unchallenged`) and list remaining unresolved sub-claims.
+- **Human Auditor Review Workflow**: Complete UI review controls with override capability, reviewer rationale notes, and automatic profile recalculation.
+- **7 New Phase 5 MCP Tools**: Expands multi-agent tool suite to 39 tools total.
+- **Full Phase 1–5 Test Suite**: 67 automated regression tests passing with zero failures.
 
 ---
 

@@ -25,6 +25,7 @@ import { SearchDashboard } from './components/SearchDashboard';
 import { ScreeningView } from './components/ScreeningView';
 import { EvidenceGraphView } from './components/EvidenceGraphView';
 import { LiteratureSynthesisView } from './components/LiteratureSynthesisView';
+import { CounterevidenceView } from './components/CounterevidenceView';
 import { EvidenceViewModal } from './components/EvidenceViewModal';
 import { PaperModal } from './components/PaperModal';
 import { HistoryModal } from './components/HistoryModal';
@@ -32,7 +33,7 @@ import { McpModal } from './components/McpModal';
 import { AlertCircle, FlaskConical } from 'lucide-react';
 
 export function App() {
-  const [activeStep, setActiveStep] = useState<'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis'>('form');
+  const [activeStep, setActiveStep] = useState<'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis' | 'counterevidence'>('form');
   const [currentRequest, setCurrentRequest] = useState<ResearchRequest | null>(null);
   const [currentStrategy, setCurrentStrategy] = useState<SearchStrategy | null>(null);
   const [lastExecution, setLastExecution] = useState<SearchExecutionSummary | undefined>(undefined);
@@ -231,6 +232,12 @@ export function App() {
 
           {activeStep === 'synthesis' && currentRequest && (
             <LiteratureSynthesisView
+              requestId={currentRequest.id}
+            />
+          )}
+
+          {activeStep === 'counterevidence' && currentRequest && (
+            <CounterevidenceView
               requestId={currentRequest.id}
             />
           )}

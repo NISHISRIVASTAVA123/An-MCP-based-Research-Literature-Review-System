@@ -23,6 +23,15 @@ from backend.app.models.synthesis import (
     GapEvidenceLink,
     HumanReviewRecord,
 )
+from backend.app.models.counterevidence import (
+    CounterevidenceSearchRun,
+    CounterevidenceClaim,
+    CounterevidenceSearchQuery,
+    CounterevidencePublication,
+    CounterevidenceAssessment,
+    CounterevidenceEvidence,
+    CounterevidenceProfile,
+)
 
 __all__ = [
     "Base",
@@ -50,4 +59,11 @@ __all__ = [
     "CandidateResearchGap",
     "GapEvidenceLink",
     "HumanReviewRecord",
+    "CounterevidenceSearchRun",
+    "CounterevidenceClaim",
+    "CounterevidenceSearchQuery",
+    "CounterevidencePublication",
+    "CounterevidenceAssessment",
+    "CounterevidenceEvidence",
+    "CounterevidenceProfile",
 ]

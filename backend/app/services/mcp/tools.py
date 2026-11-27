@@ -668,5 +668,223 @@ def tool_get_synthesis_history(
             session.close()
 
 
+# ==========================================
+# Phase 5 MCP Tools: Explicit Counterevidence Retrieval
+# ==========================================
+
+def tool_generate_counterevidence_queries(
+    gap_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Decomposes a candidate gap into empirical claims and generates counterevidence queries."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.models.synthesis import CandidateResearchGap
+    from backend.app.services.counterevidence.claim_decomposer import GapClaimDecomposer
+    from backend.app.services.counterevidence.query_generator import CounterevidenceQueryGenerator
+    from sqlalchemy import select
+
+    session = db or SessionLocal()
+    try:
+        gap = session.execute(
+            select(CandidateResearchGap).where(CandidateResearchGap.id == gap_id)
+        ).scalar_one_or_none()
+        if not gap:
+            return {"error": f"Candidate gap '{gap_id}' not found."}
+
+        claims = GapClaimDecomposer().decompose_gap(gap)
+        queries = CounterevidenceQueryGenerator().generate_queries_for_claims(
+            candidate_gap_id=gap.id,
+            gap_title=gap.title,
+            claims=claims,
+        )
+        return {
+            "candidate_gap_id": gap_id,
+            "gap_title": gap.title,
+            "decomposed_claims": claims,
+            "generated_queries": queries,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+async def tool_search_counterevidence(
+    gap_id: str,
+    request_id: str,
+    databases: Optional[List[str]] = None,
+    max_results: int = 10,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Runs autonomous counterevidence retrieval, relevance assessment, and profile aggregation for a gap."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.counterevidence.counterevidence_orchestrator import CounterevidenceOrchestrator
+
+    session = db or SessionLocal()
+    try:
+        orchestrator = CounterevidenceOrchestrator(session)
+        return await orchestrator.execute_search_for_gap(
+            candidate_gap_id=gap_id,
+            research_request_id=request_id,
+            databases=databases,
+            max_results_per_query=max_results,
+        )
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_counterevidence_search_status(
+    run_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Gets the execution status and metrics of a counterevidence search run."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.counterevidence_repository import CounterevidenceRepository
+
+    session = db or SessionLocal()
+    try:
+        run = CounterevidenceRepository(session).get_search_run(run_id)
+        if not run:
+            return {"error": f"Search run '{run_id}' not found."}
+        return {
+            "id": run.id,
+            "status": run.status,
+            "candidate_gap_id": run.candidate_gap_id,
+            "claims_count": run.total_claims_decomposed,
+            "queries_count": run.total_queries_executed,
+            "publications_found": run.total_publications_found,
+            "newly_discovered_count": run.newly_discovered_count,
+            "started_at": run.started_at.isoformat() if run.started_at else None,
+            "completed_at": run.completed_at.isoformat() if run.completed_at else None,
+            "error_message": run.error_message,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_counterevidence_publications(
+    gap_id: str,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieves publications discovered specifically through counterevidence queries for a candidate gap."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.counterevidence_repository import CounterevidenceRepository
+
+    session = db or SessionLocal()
+    try:
+        pubs = CounterevidenceRepository(session).get_publications_by_gap(gap_id)
+        results = []
+        for p in pubs:
+            paper = p.paper
+            results.append({
+                "id": p.id,
+                "paper_id": p.paper_id,
+                "title": paper.title if paper else None,
+                "authors": paper.authors if paper else [],
+                "year": paper.publication_year if paper else None,
+                "doi": paper.doi if paper else None,
+                "discovery_source": p.discovery_source,
+                "is_newly_discovered": p.is_newly_discovered,
+                "screening_status": p.screening_status,
+                "retrieved_at": p.retrieved_at.isoformat() if p.retrieved_at else None,
+            })
+        return results
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_assess_counterevidence_relevance(
+    gap_id: str,
+    paper_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Assesses whether an individual paper directly, partially, or weakly challenges a candidate gap."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.counterevidence_repository import CounterevidenceRepository
+    from backend.app.services.counterevidence.relevance_assessor import CounterevidenceRelevanceAssessor
+    from backend.app.models.paper import Paper
+    from backend.app.models.synthesis import CandidateResearchGap
+    from backend.app.models.document import FulltextDocument
+    from sqlalchemy import select
+
+    session = db or SessionLocal()
+    try:
+        paper = session.execute(select(Paper).where(Paper.id == paper_id)).scalar_one_or_none()
+        gap = session.execute(select(CandidateResearchGap).where(CandidateResearchGap.id == gap_id)).scalar_one_or_none()
+        if not paper or not gap:
+            return {"error": "Paper or CandidateGap not found."}
+
+        ft_doc = session.execute(select(FulltextDocument).where(FulltextDocument.paper_id == paper_id)).scalar_one_or_none()
+        assessment = CounterevidenceRelevanceAssessor().assess_paper_against_gap(paper, gap, fulltext_doc=ft_doc)
+        return assessment
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_extract_counterevidence_evidence(
+    gap_id: str,
+    db: Optional[Any] = None,
+) -> List[Dict[str, Any]]:
+    """Retrieves inspectable verbatim source passages supporting counterevidence assessments."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.counterevidence_repository import CounterevidenceRepository
+
+    session = db or SessionLocal()
+    try:
+        items = CounterevidenceRepository(session).get_evidence_items_by_gap(gap_id)
+        return [
+            {
+                "id": it.id,
+                "paper_id": it.paper_id,
+                "verbatim_passage": it.verbatim_passage,
+                "page_number": it.page_number,
+                "section_heading": it.section_heading,
+                "evidence_type": it.evidence_type,
+                "evidence_summary": it.evidence_summary,
+                "verification_status": it.verification_status,
+            }
+            for it in items
+        ]
+    finally:
+        if db is None:
+            session.close()
+
+
+def tool_get_counterevidence_profile(
+    gap_id: str,
+    db: Optional[Any] = None,
+) -> Dict[str, Any]:
+    """Retrieves the aggregated counterevidence impact assessment profile for a candidate gap."""
+    from backend.app.services.persistence.database import SessionLocal
+    from backend.app.services.persistence.counterevidence_repository import CounterevidenceRepository
+
+    session = db or SessionLocal()
+    try:
+        profile = CounterevidenceRepository(session).get_profile_by_gap(gap_id)
+        if not profile:
+            return {"error": f"Counterevidence profile for gap '{gap_id}' has not been generated yet."}
+        return {
+            "candidate_gap_id": profile.candidate_gap_id,
+            "impact_assessment": profile.impact_assessment,
+            "total_retrieved": profile.total_retrieved,
+            "direct_counterevidence_count": profile.direct_counterevidence_count,
+            "partial_counterevidence_count": profile.partial_counterevidence_count,
+            "related_evidence_count": profile.related_evidence_count,
+            "irrelevant_count": profile.irrelevant_count,
+            "inconclusive_count": profile.inconclusive_count,
+            "executive_summary": profile.executive_summary,
+            "remaining_unresolved_claims": profile.remaining_unresolved_claims,
+            "verification_status": profile.verification_status,
+            "generated_at": profile.generated_at.isoformat() if profile.generated_at else None,
+        }
+    finally:
+        if db is None:
+            session.close()
+
+
+
 
 

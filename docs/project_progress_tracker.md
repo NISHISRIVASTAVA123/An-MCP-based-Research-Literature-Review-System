@@ -16,7 +16,7 @@
 | **Phase 2** | **Paper screening and structured evidence extraction** | **Weeks 3–4** | 🟢 **COMPLETED** | **7 / 7 Modules Done (100%)** |
 | **Phase 3** | **Evidence database and evidence graph construction** | **Weeks 5–6** | 🟢 **COMPLETED** | **6 / 6 Modules Done (100%)** |
 | **Phase 4** | **Literature synthesis and baseline candidate research-gap generation** | **Week 7** | 🟢 **COMPLETED** | **8 / 8 Modules Done (100%)** |
-| Phase 5 | Explicit counterevidence retrieval | Week 8 | ⚪ Queued | 0 / 5 Modules |
+| **Phase 5** | **Explicit counterevidence retrieval & evidence traceability** | **Week 8** | 🟢 **COMPLETED** | **7 / 7 Modules Done (100%)** |
 | Phase 6 | Evidence-graph-based claim verification | Week 9 | ⚪ Queued | 0 / 5 Modules |
 | Phase 7 | Coverage-aware research-gap assessment | Week 10 | ⚪ Queued | 0 / 6 Modules |
 | Phase 8 | Autonomous comprehensive report generation | Week 11 | ⚪ Queued | 0 / 7 Modules |
@@ -122,10 +122,37 @@
 
 ---
 
-## 6. Next Phase: Phase 5 Scope & Roadmap
-**Phase 5: Explicit Counterevidence Retrieval**
-*Deliverables planned for Phase 5 (to begin only after user authorization):*
-1. Autonomous counterevidence query generation using Phase 4 candidate gap validation queries.
-2. Targeted academic database retrieval (arXiv, OpenAlex, Semantic Scholar, Crossref) for contradictory studies.
-3. Contrastive screening filter isolating potential refutations.
-4. Passage-level counterevidence extraction and evidence graph integration.
+## 6. Phase 5 Implementation Summary (Completed)
+
+```
+[ Phase 5 Progress: 7 / 7 Modules Completed - 100% ]
+```
+
+- [x] **Module A: Candidate Gap Decomposition**:
+  - `GapClaimDecomposer` breaks candidate gaps into 3–6 atomic empirical sub-claims (`unexplored_problem`, `missing_methodology`, `missing_dataset_evaluation`, `untested_assumptions`).
+- [x] **Module B: Adversarial Multi-Angle Query Generator**:
+  - `CounterevidenceQueryGenerator` formulating 4 distinct query types (Direct Counter, Methodology Application, Synonym Expansion, Newer Publications) across 4 academic providers.
+- [x] **Module C: Academic Retrieval & Deduplication Service**:
+  - `CounterevidenceRetrievalService` querying OpenAlex, Semantic Scholar, Crossref, and arXiv concurrently.
+  - Fingerprint deduplication, tag isolation (`discovery_tag="counterevidence_discovered"`), and full-text document discovery.
+- [x] **Module D: Relevance Classification & Evidence Hierarchy**:
+  - `CounterevidenceRelevanceAssessor` classifying papers into 5 tiers (`direct_counterevidence`, `partial_counterevidence`, `related_evidence`, `not_relevant`, `insufficient_information`).
+  - Strict evidence hierarchy enforcing Level 1 (Full-Text) ground truth for authoritative direct counterevidence and flagging Level 2 (Abstract-supported).
+- [x] **Module E: Traceable Source Passage Linker**:
+  - `CounterevidenceEvidenceLinker` anchoring verbatim excerpts, section headings, and page coordinates with human audit trails.
+- [x] **Module F: Gap Resilience Profile Aggregator**:
+  - `CounterevidenceProfileAggregator` synthesizing metric counts, impact classifications (`strongly_challenged` through `unchallenged`), and remaining unresolved sub-claims.
+- [x] **Module G: REST Endpoints, MCP Tools, and React 19 Frontend**:
+  - 10 REST endpoints with shorthand routes; 7 registered Model Context Protocol tools.
+  - Interactive `CounterevidenceView.tsx` with sub-tabs for Claims, Queries, Literature, and Passages.
+  - **67 / 67 automated tests passing** across Phases 1–5 (`pytest backend/tests/ -q --tb=line`).
+
+---
+
+## 7. Next Phase: Phase 6 Scope & Roadmap
+**Phase 6: Evidence-Graph-Based Claim Verification**
+*Deliverables planned for Phase 6 (to begin only after user authorization):*
+1. Integration of counterevidence nodes and edges into the Phase 3 Evidence Graph.
+2. Contradiction detection algorithms and cycle-free claim conflict mapping.
+3. Graph traversal heuristics for automated claim verification and challenge path analysis.
+

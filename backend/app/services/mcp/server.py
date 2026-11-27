@@ -39,6 +39,13 @@ from backend.app.services.mcp.tools import (
     tool_get_candidate_gap_evidence,
     tool_update_candidate_gap_review,
     tool_get_synthesis_history,
+    tool_generate_counterevidence_queries,
+    tool_search_counterevidence,
+    tool_get_counterevidence_search_status,
+    tool_get_counterevidence_publications,
+    tool_assess_counterevidence_relevance,
+    tool_extract_counterevidence_evidence,
+    tool_get_counterevidence_profile,
 )
 
 # Initialize MCP server
@@ -383,6 +390,70 @@ def get_synthesis_history(
 ) -> List[Dict[str, Any]]:
     """Retrieves previous synthesis runs and configuration snapshots for reproducibility (Phase 4)."""
     return tool_get_synthesis_history(request_id)
+
+
+# ==========================================
+# Phase 5 MCP Tools: Explicit Counterevidence Retrieval
+# ==========================================
+
+@mcp_server.tool()
+def generate_counterevidence_queries(
+    gap_id: str,
+) -> Dict[str, Any]:
+    """Decomposes a candidate gap into empirical claims and generates multi-perspective counterevidence queries (Phase 5)."""
+    return tool_generate_counterevidence_queries(gap_id)
+
+
+@mcp_server.tool()
+async def search_counterevidence(
+    gap_id: str,
+    request_id: str,
+    databases: Optional[List[str]] = None,
+    max_results: int = 10,
+) -> Dict[str, Any]:
+    """Runs autonomous counterevidence retrieval, relevance classification, and profile generation for a gap (Phase 5)."""
+    return await tool_search_counterevidence(gap_id, request_id, databases, max_results)
+
+
+@mcp_server.tool()
+def get_counterevidence_search_status(
+    run_id: str,
+) -> Dict[str, Any]:
+    """Retrieves the status, metrics, and error logs of a counterevidence search execution (Phase 5)."""
+    return tool_get_counterevidence_search_status(run_id)
+
+
+@mcp_server.tool()
+def get_counterevidence_publications(
+    gap_id: str,
+) -> List[Dict[str, Any]]:
+    """Retrieves publications discovered through counterevidence queries targeting a candidate gap (Phase 5)."""
+    return tool_get_counterevidence_publications(gap_id)
+
+
+@mcp_server.tool()
+def assess_counterevidence_relevance(
+    gap_id: str,
+    paper_id: str,
+) -> Dict[str, Any]:
+    """Assesses whether an individual paper directly, partially, or weakly challenges a candidate gap (Phase 5)."""
+    return tool_assess_counterevidence_relevance(gap_id, paper_id)
+
+
+@mcp_server.tool()
+def extract_counterevidence_evidence(
+    gap_id: str,
+) -> List[Dict[str, Any]]:
+    """Retrieves inspectable verbatim source passages and page numbers supporting counterevidence claims (Phase 5)."""
+    return tool_extract_counterevidence_evidence(gap_id)
+
+
+@mcp_server.tool()
+def get_counterevidence_profile(
+    gap_id: str,
+) -> Dict[str, Any]:
+    """Retrieves the aggregated counterevidence impact assessment profile for a candidate gap (Phase 5)."""
+    return tool_get_counterevidence_profile(gap_id)
 
 
 if __name__ == "__main__":

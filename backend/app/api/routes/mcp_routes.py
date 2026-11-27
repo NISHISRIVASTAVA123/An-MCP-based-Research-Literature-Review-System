@@ -279,6 +279,59 @@ def list_mcp_tools():
                     "request_id": "string (required)",
                 },
             },
+            {
+                "name": "generate_counterevidence_queries",
+                "description": "Decomposes a candidate gap into empirical claims and generates multi-perspective counterevidence queries (Phase 5)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                },
+            },
+            {
+                "name": "search_counterevidence",
+                "description": "Runs autonomous counterevidence retrieval, relevance classification, and profile generation for a gap (Phase 5)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                    "request_id": "string (required)",
+                    "databases": "array of strings (optional)",
+                    "max_results": "integer (optional, default 10)",
+                },
+            },
+            {
+                "name": "get_counterevidence_search_status",
+                "description": "Retrieves the status, metrics, and error logs of a counterevidence search execution (Phase 5)",
+                "parameters": {
+                    "run_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_counterevidence_publications",
+                "description": "Retrieves publications discovered through counterevidence queries targeting a candidate gap (Phase 5)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                },
+            },
+            {
+                "name": "assess_counterevidence_relevance",
+                "description": "Assesses whether an individual paper directly, partially, or weakly challenges a candidate gap (Phase 5)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                    "paper_id": "string (required)",
+                },
+            },
+            {
+                "name": "extract_counterevidence_evidence",
+                "description": "Retrieves inspectable verbatim source passages and page numbers supporting counterevidence claims (Phase 5)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                },
+            },
+            {
+                "name": "get_counterevidence_profile",
+                "description": "Retrieves the aggregated counterevidence impact assessment profile for a candidate gap (Phase 5)",
+                "parameters": {
+                    "gap_id": "string (required)",
+                },
+            },
 
         ],
     }

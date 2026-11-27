@@ -23,12 +23,12 @@ const PHASES = [
   {
     num: 4, label: 'Literature Synthesis',
     sub: 'Gap identification baseline',
-    icon: Microscope, color: '#f59e0b', active: true, done: false,
+    icon: CheckCircle2, color: '#10b981', active: false, done: true,
   },
   {
     num: 5, label: 'Counterevidence Search',
     sub: 'Gap-specific counter-retrieval',
-    icon: ShieldCheck, color: '#f43f5e', active: false, done: false,
+    icon: ShieldCheck, color: '#f43f5e', active: true, done: false,
   },
   {
     num: 6, label: 'Claim Verification',
@@ -53,8 +53,8 @@ const PHASES = [
 ];
 
 interface PhaseRoadmapProps {
-  currentActiveStep?: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis';
-  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis') => void;
+  currentActiveStep?: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis' | 'counterevidence';
+  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis' | 'counterevidence') => void;
 }
 
 

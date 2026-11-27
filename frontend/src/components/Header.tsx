@@ -5,17 +5,18 @@ interface HeaderProps {
   onNewReview: () => void;
   onOpenHistory: () => void;
   onOpenMcp: () => void;
-  activeStep: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis';
-  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis') => void;
+  activeStep: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis' | 'counterevidence';
+  onSelectStep?: (step: 'form' | 'strategy' | 'dashboard' | 'screening' | 'graph' | 'synthesis' | 'counterevidence') => void;
 }
 
 const STEPS = [
-  { id: 'form',      label: 'Research Input',     num: 1 },
-  { id: 'strategy',  label: 'Search Strategy',    num: 2 },
-  { id: 'dashboard', label: 'Corpus Results',     num: 3 },
-  { id: 'screening', label: 'Screening & Evidence', num: 4 },
-  { id: 'graph',     label: 'Evidence Graph',     num: 5 },
-  { id: 'synthesis', label: 'Literature Synthesis', num: 6 },
+  { id: 'form',            label: 'Research Input',       num: 1 },
+  { id: 'strategy',        label: 'Search Strategy',      num: 2 },
+  { id: 'dashboard',       label: 'Corpus Results',       num: 3 },
+  { id: 'screening',       label: 'Screening & Evidence', num: 4 },
+  { id: 'graph',           label: 'Evidence Graph',       num: 5 },
+  { id: 'synthesis',       label: 'Literature Synthesis', num: 6 },
+  { id: 'counterevidence', label: 'Counterevidence',      num: 7 },
 ] as const;
 
 export const Header: React.FC<HeaderProps> = ({
@@ -56,11 +57,11 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               <span style={{
                 fontSize: '0.65rem', fontWeight: 700, letterSpacing: '0.08em',
-                background: 'rgba(245,158,11,.2)', color: '#fbbf24',
+                background: 'rgba(244,63,94,.2)', color: '#fb7185',
                 borderRadius: '100px', padding: '0.15rem 0.55rem',
-                border: '1px solid rgba(245,158,11,.35)',
+                border: '1px solid rgba(244,63,94,.35)',
               }}>
-                PHASE 4 ACTIVE
+                PHASE 5 ACTIVE
               </span>
             </div>
             <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>

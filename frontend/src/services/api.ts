@@ -476,4 +476,119 @@ export async function compareRunsHistory(
   return res.json();
 }
 
+// ---------------------------------------------------------------------------
+// PHASE 5: Counterevidence Retrieval API
+// ---------------------------------------------------------------------------
+
+import {
+  CounterevidenceClaim,
+  CounterevidenceQuery,
+  CounterevidencePublication,
+  CounterevidenceAssessment,
+  CounterevidenceEvidenceItem,
+  CounterevidenceProfile,
+  CounterevidenceSearchRun,
+  CounterevidenceRelevance,
+} from '../types/counterevidence';
+
+export async function searchCounterevidenceForGap(
+  gapId: string,
+  payload?: { max_queries?: number; max_results_per_query?: number; download_fulltext?: boolean }
+): Promise<CounterevidenceProfile> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Counterevidence search failed' }));
+    throw new Error(err.detail || 'Counterevidence search failed');
+  }
+  return res.json();
+}
+
+export async function searchCounterevidenceForAllGaps(
+  payload?: { gap_ids?: string[]; scope_description?: string; max_queries_per_gap?: number; max_results_per_query?: number }
+): Promise<CounterevidenceSearchRun> {
+  const res = await fetch(`${API_BASE}/counterevidence/runs/batch`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {}),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Batch counterevidence search failed' }));
+    throw new Error(err.detail || 'Batch counterevidence search failed');
+  }
+  return res.json();
+}
+
+export async function getCounterevidenceRuns(): Promise<CounterevidenceSearchRun[]> {
+  const res = await fetch(`${API_BASE}/counterevidence/runs`);
+  if (!res.ok) throw new Error('Failed to load counterevidence runs');
+  return res.json();
+}
+
+export async function getGapCounterevidenceClaims(gapId: string): Promise<CounterevidenceClaim[]> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/claims`);
+  if (!res.ok) throw new Error('Failed to load gap claims');
+  return res.json();
+}
+
+export async function getGapCounterevidenceQueries(gapId: string): Promise<CounterevidenceQuery[]> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/queries`);
+  if (!res.ok) throw new Error('Failed to load counterevidence queries');
+  return res.json();
+}
+
+export async function getGapCounterevidencePublications(
+  gapId: string,
+  relevance?: string
+): Promise<CounterevidencePublication[]> {
+  const q = new URLSearchParams();
+  if (relevance) q.append('relevance', relevance);
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/publications?${q.toString()}`);
+  if (!res.ok) throw new Error('Failed to load counterevidence publications');
+  return res.json();
+}
+
+export async function getGapCounterevidenceAssessments(gapId: string): Promise<CounterevidenceAssessment[]> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/assessments`);
+  if (!res.ok) throw new Error('Failed to load assessments');
+  return res.json();
+}
+
+export async function reviewCounterevidenceAssessment(
+  assessmentId: string,
+  payload: { reviewer_notes?: string; override_relevance?: CounterevidenceRelevance }
+): Promise<CounterevidenceAssessment> {
+  const res = await fetch(`${API_BASE}/counterevidence/assessments/${assessmentId}/review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error('Failed to submit assessment review');
+  return res.json();
+}
+
+export async function getGapCounterevidenceEvidence(gapId: string): Promise<CounterevidenceEvidenceItem[]> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/evidence`);
+  if (!res.ok) throw new Error('Failed to load evidence passages');
+  return res.json();
+}
+
+export async function getGapCounterevidenceProfile(gapId: string): Promise<CounterevidenceProfile | null> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/profile`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error('Failed to load counterevidence profile');
+  return res.json();
+}
+
+export async function rebuildGapCounterevidenceProfile(gapId: string): Promise<CounterevidenceProfile> {
+  const res = await fetch(`${API_BASE}/counterevidence/gaps/${gapId}/profile/rebuild`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to rebuild counterevidence profile');
+  return res.json();
+}
+
 
